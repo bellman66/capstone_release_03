@@ -14,11 +14,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+// 파일 리스트 관리 - 리스트 엑티비티.
 public class FileList extends ListActivity {
 
-    private File file;
-    private ArrayList<String> mylist;
-    private File selected_file;
+    private File file;  // 사용되는 file
+    private ArrayList<String> mylist;   // file 내 list.
+    private File selected_file; // 선택되는 file.
 
     private String state;
     private TextView tv;
@@ -27,28 +28,30 @@ public class FileList extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 객체 구현.
         mylist = new ArrayList<String>();
 
         // 1. 어떤 발표문을 가져와서 확인하는지 해당 폴더를 가져오는 역할.
-        Toast.makeText(getApplicationContext(),"dirPath",Toast.LENGTH_LONG).show();
-
-        file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),"MyDocAPP");
+        file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/capstone","MyDocAPP");
 
         // 1-1../capstone 폴더가 존재하지 않으면 mkdir을 이용해서 폴더생성.
         if(!file.exists()) {
             if(!file.mkdir()){
+                // 디텍토리 생성 x 인 경우 - 로그를 생성.
                 Log.d("MyDocApp" , "Failed to create directory");
                 return;
             }
         }
 
+        // 파일내 list 를 가져옴.
         File list[] = file.listFiles();
 
-
+        // list의 이름을 가져옴. + add
         for(int i =0 ; i< list.length ; i++) {
             mylist.add(list[i].getName());
         }
 
+        // Adapter 생성 , list view 로 매칭.
         ArrayAdapter<String> Adapter = new ArrayAdapter<String>(this,
                 R.layout.activity_file_list, R.id.listview ,mylist);
         setListAdapter(Adapter);
