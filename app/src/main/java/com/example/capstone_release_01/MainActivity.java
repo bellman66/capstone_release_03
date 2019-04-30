@@ -111,7 +111,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-       if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
+        // 요청코드를 통해서 구분시킴.
+        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
 
            match_text_dialog = new Dialog(MainActivity.this);
            match_text_dialog.setContentView(R.layout.dialog_matches_frag);

@@ -17,7 +17,7 @@ import java.util.List;
 public class FileList extends ListActivity {
 
     private File file;
-    private List mylist;
+    private ArrayList<String> mylist;
     private File selected_file;
 
     private String state;
@@ -27,30 +27,33 @@ public class FileList extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mylist = new ArrayList();
-        checkExternalStorage();
+        mylist = new ArrayList<String>();
+
         // 1. 어떤 발표문을 가져와서 확인하는지 해당 폴더를 가져오는 역할.
-        String dirPath = Environment.getExternalStorageDirectory() + "/capstone" ;
         Toast.makeText(getApplicationContext(),"dirPath",Toast.LENGTH_LONG).show();
 
-        file = new File(dirPath);
+        file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),"MyDocAPP");
 
         // 1-1../capstone 폴더가 존재하지 않으면 mkdir을 이용해서 폴더생성.
         if(!file.exists()) {
-            Toast.makeText(getApplicationContext(),"파일 존재x",Toast.LENGTH_LONG).show();
-            file.mkdir();
+            if(!file.mkdir()){
+                Log.d("MyDocApp" , "Failed to create directory");
+                return;
+            }
         }
 
         File list[] = file.listFiles();
 
 
-        for(int i =0 ; i< list.length ; i++){
+        for(int i =0 ; i< list.length ; i++) {
             mylist.add(list[i].getName());
         }
-        setListAdapter(new ArrayAdapter<String>(this,
-                R.layout.activity_file_list,mylist));
-    }
 
+        ArrayAdapter<String> Adapter = new ArrayAdapter<String>(this,
+                R.layout.activity_file_list, R.id.listview ,mylist);
+        setListAdapter(Adapter);
+    }
+    /*
     public void Get_list() {
         setListAdapter(new ArrayAdapter<String>(this,
                 R.layout.activity_file_list,
@@ -113,4 +116,5 @@ public class FileList extends ListActivity {
             return false;
         }
     }
+    */
 }
