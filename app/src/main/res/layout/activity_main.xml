@@ -12,6 +12,7 @@
         android:id="@+id/welcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="20dp"
         android:textSize="30sp"
         android:layout_gravity="center"
         android:text="음성 인식 테스트"
@@ -19,23 +20,11 @@
 
     <!-- 발표문 받아오는 부분
          해당 발표문 전체를 가져오게 됨.-->
-    <TextView
-        android:id="@+id/report"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textSize="25sp"/>
 
     <!-- 음성인식 후에 해당 원하는
          띄워주는 텍스트 뷰
 
          차후에 layout_height 높이바꿔줘야함 -->
-    <TextView
-        android:id="@+id/speech"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textSize="25sp"/>
 
     <!-- 리스트를 가져오는 버튼 -->
     <Button
@@ -54,4 +43,12 @@
         android:layout_gravity="center"
         android:text="음성 인식 시작"
         />
+
+    <TextView
+        android:id="@+id/select_File"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        />
+
 </LinearLayout>
