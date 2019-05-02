@@ -95,6 +95,7 @@ public class FileList extends ListActivity {
 
         // 선택되는 순간 setresult 로 보냄.
 
+        // select 되는 파일이 있을경우 if문 통과.
         if(!selected_file.isFile()) {
             file = new File(file, (String) mylist.get(position));
             File list[] = file .listFiles();
