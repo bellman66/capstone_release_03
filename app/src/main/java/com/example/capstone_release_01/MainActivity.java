@@ -27,7 +27,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     // API 요청을 분리하기 위한 요청 코드
-    private static final int REQUEST_CODE = 1234;
     private static final int FILE_REQUEST_CODE = 2345;
 
     Button start;   // START 버튼
