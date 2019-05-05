@@ -86,7 +86,7 @@ public class FileList extends ListActivity {
         //############################### list 리턴해주는 부분 마무리.
     }
     */
-
+    /*
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
@@ -121,7 +121,7 @@ public class FileList extends ListActivity {
             finish();
         }
     }
-
+    */
     /*
     public List getSelected_file(){
         return (List) selected_file;

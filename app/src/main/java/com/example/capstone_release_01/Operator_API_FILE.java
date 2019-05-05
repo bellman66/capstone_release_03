@@ -83,6 +83,12 @@ public class Operator_API_FILE extends AppCompatActivity {
                     // 요청을 확인하는 카운팅.
                     if( (clickcount++) >= Intent_text.size()){
                         Toast.makeText(getApplicationContext(),"발표 마무리",Toast.LENGTH_LONG).show();
+
+                        Intent intent = new Intent(getApplicationContext(),result.class);
+                        intent.putExtra("result" , result);
+                        // INTENT 실행.
+                        startActivity(intent);
+
                         return;
                     }
                     else {
