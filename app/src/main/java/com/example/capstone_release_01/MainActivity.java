@@ -1,15 +1,21 @@
 package com.example.capstone_release_01;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -21,10 +27,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.w3c.dom.Text;
 import java.io.File;
+import java.nio.channels.SelectableChannel;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private Activity mainActivity = this;
+
+    private static final int REQUEST_EXTERNAL_STORAGE = 1111;
+    private int permissioncheck_read ;
+    private int permissioncheck_write;
 
     // API 요청을 분리하기 위한 요청 코드
     private static final int FILE_REQUEST_CODE = 2345;
@@ -48,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
         // activity_main.xml 화면 사용
         setContentView(R.layout.activity_main);
 
+        setPermissioncheck();
+
         // xml 에서 R.id.~ 을 통해서 버튼 과 텍스트 뷰를 찾고 매칭.
         start = (Button) findViewById(R.id.start_reg);
         GetList = (Button) findViewById(R.id.get_list);
@@ -68,15 +82,22 @@ public class MainActivity extends AppCompatActivity {
             // 클릭 실행 메소드.
             @Override
             public void onClick(View v) {
+                /*
+                if(!file_text.isEmpty()){
+                    file_text.clear();
+                }
+                */
+
+
                 // 리스트 클릭이 되는지 확인하는 메소드.
                 Toast.makeText(getApplicationContext()," GET LIST 클릭 " , Toast.LENGTH_LONG).show();
 
                 // INTENT - FILELIST 객체로 보내는 MESSAGE 제작.
                 Intent intent = new Intent(getApplicationContext(),FileList.class);
                 // INTENT 실행.
-                startActivity(intent);
+                // startActivity(intent);
 
-                // sstartActivityForResult(intent,REQUEST_CODE_SECOND) 로 전환 구상.
+                startActivityForResult(intent,FILE_REQUEST_CODE);
 
             }
         });
@@ -87,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Operator . class 로 보내는 intent 작성.
                 Toast.makeText(getApplicationContext()," START 클릭 " , Toast.LENGTH_LONG).show();
-
                 // INTENT
                 Intent intent = new Intent(getApplicationContext(),Operator_API_FILE.class);
                 intent.putStringArrayListExtra("Text", file_text);
@@ -102,15 +122,52 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
        // FileList 에서 받는 텍스트 종류.
-       if(requestCode == FILE_REQUEST_CODE && resultCode == RESULT_OK){
-            file_text = data.getStringArrayListExtra("result");
-
-            String str;
-            for(int i =0 ; i < file_text.size() ; i++) {
-                str = (String) file_text.get(i);
-                Select_file.append(str);
-            }
+       if(resultCode == RESULT_OK){
+           switch (requestCode) {
+               case FILE_REQUEST_CODE:
+                    file_text = data.getStringArrayListExtra("result");
+                    /*
+                    String str;
+                    for(int i =0 ; i < file_text.size() ; i++) {
+                     str = (String) file_text.get(i);
+                     Select_file.append(str);
+                    }
+                    */
+                    Select_file.setText(file_text.get(1));
+                    break;
+           }
        }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    // 퍼미션 체크
+    private void setPermissioncheck() {
+        permissioncheck_read = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
+        permissioncheck_write = ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if(permissioncheck_read == PackageManager.PERMISSION_DENIED || permissioncheck_write == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_EXTERNAL_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case REQUEST_EXTERNAL_STORAGE:
+                for (int i = 0; i < permissions.length; i++) {
+                    String permission = permissions[i];
+                    int grantResult = grantResults[i];
+                    if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        if(grantResult == PackageManager.PERMISSION_GRANTED) {
+                            Toast.makeText(getApplicationContext(),"read/write storage permission authorized" , Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(),"read/write storage permission denied" , Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+                break;
+        }
     }
 }
