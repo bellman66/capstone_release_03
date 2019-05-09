@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Operator_API_FILE extends AppCompatActivity {
 
@@ -42,6 +43,7 @@ public class Operator_API_FILE extends AppCompatActivity {
     ArrayList<String> matches_text; // API 에서 받는 리스트 텍스트
     ArrayList<String> Intent_text; // 파일 저장으로 받은 리스트 텍스트.
     ArrayList<Integer> result;
+    ArrayList<List> result_keyword;
     Intent intent;
 
     // 초기 지정 - oncreate
@@ -54,6 +56,7 @@ public class Operator_API_FILE extends AppCompatActivity {
         FILE_Text = (TextView) findViewById(R.id.File_Text);
         API_Text = (TextView) findViewById(R.id.API_Text);
         result.clear();
+        result_keyword.clear();
 
         Set_FILE_Text();
     }
@@ -148,7 +151,7 @@ public class Operator_API_FILE extends AppCompatActivity {
 
                     // 여기서 matches_text.get(position) 와 Intent_text.get(clickcount) 사용
                     result.add(100 - getDistance(matches_text.get(position),Intent_text.get(clickcount)));
-
+                    // result_keyword.add(FindKeyWord(Intent_text.get(clickcount)));
                     match_text_dialog.hide();
                 }
             });

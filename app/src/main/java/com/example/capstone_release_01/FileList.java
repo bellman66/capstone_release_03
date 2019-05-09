@@ -36,6 +36,7 @@ public class FileList extends ListActivity {
         // 1. 어떤 발표문을 가져와서 확인하는지 해당 폴더를 가져오는 역할.
 
         // #########    외부저장소가 지정 , 저장이 안되는 상황.
+        String pathname = Environment.getExternalStorageDirectory().getAbsolutePath();
         File path = Environment.getExternalStoragePublicDirectory( Environment.DIRECTORY_DOWNLOADS + "/capstone");
         File file = new File( path ,"capstone");
         // ########
@@ -55,9 +56,10 @@ public class FileList extends ListActivity {
 
         // ############# 생성이 안되는 문제점 발견 ########################
         if(!file.exists()){
-            Toast.makeText(getApplicationContext(),"존재하긴함" , Toast.LENGTH_LONG).show();
-            if(!file.mkdir()){
-                Toast.makeText(getApplicationContext(), " 생성 x", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"존재하긴함" , Toast.LENGTH_LONG).show();
+
+                    if(!file.mkdir()){
+                        Toast.makeText(getApplicationContext(), " 생성 x", Toast.LENGTH_LONG).show();
             }
         }
 

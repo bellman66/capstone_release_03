@@ -75,12 +75,14 @@ public class result extends AppCompatActivity {
         lineChart.animateY(2000, Easing.EasingOption.EaseInCubic);
         lineChart.invalidate();
 
+        // label 미사용 했음 아직.
         ArrayList<String> labels = new ArrayList<String>();
         for(int i = 0 ; i < result_int.size();i++){
             labels.add(String.valueOf(i));
         }
 
     }
+
     private void Set_FILE_Text() {
         result_int = intent.getIntegerArrayListExtra("result");
     }
