@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -19,10 +20,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +38,7 @@ public class FileList extends ListActivity {
     private static final int FILE_REQUEST_CODE = 2345;
 
     private ArrayList<String> mylist;   // file 내 list.
+    private ArrayList<String> list2;
     private File selected_file; // 선택되는 file.
 
     private File dir;
@@ -54,7 +61,7 @@ public class FileList extends ListActivity {
 
         // Adapter 생성 , list view 로 매칭.
         ArrayAdapter<String> Adapter = new ArrayAdapter<String>(this,
-                R.layout.activity_file_list, R.id.listview ,mylist);
+                R.layout.activity_file_list, R.id.listview , mylist);
         setListAdapter(Adapter);
 
     }
@@ -68,6 +75,11 @@ public class FileList extends ListActivity {
 
         selected_file = new File(dir , (String) mylist.get(position));
 
+        try {
+            FILE_READ(selected_file) ;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         // 선택되는 순간 setresult 로 보냄.
 
         // select 되는 파일이 있을경우 if문 통과.
@@ -93,11 +105,12 @@ public class FileList extends ListActivity {
         */
             Intent resultintent = new Intent();
             // some value 안에 원하는 평서문을 넣어줌. 그럼보내게됨.
-            resultintent.putExtra("result", "some value");
+            resultintent.putStringArrayListExtra("result", list2 );
             setResult(RESULT_OK , resultintent);
             finish();
         // }
     }
+
 
     //===============================================================================================
     //===============================================================================================
@@ -146,4 +159,47 @@ public class FileList extends ListActivity {
         }
     }
 
+    private void FILE_READ(File selected_file) throws IOException {
+
+        if (!mylist.isEmpty()){
+            mylist.clear();
+        }
+        if(!list2.isEmpty()){
+            list2.clear();
+        }
+
+        String fileString = new String();
+        FileInputStream inputStream = null;
+        ByteArrayOutputStream byteArrayOutputStream = null;
+
+        try {
+            inputStream = new FileInputStream(selected_file);
+            byteArrayOutputStream = new ByteArrayOutputStream();
+
+            int len = 0;
+            byte[] buf = new byte[1024];
+
+            while((len = inputStream.read(buf)) != -1){
+                byteArrayOutputStream.write(buf,0,len);
+            }
+
+            byte[] fileArray = byteArrayOutputStream.toByteArray();
+            fileString = fileArray.toString();
+
+            String[] str_1 = fileString.split(".");
+
+            for(int i = 0 ; i<str_1.length ; i++) {
+                list2.add(str_1[i]);
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            inputStream.close();
+            byteArrayOutputStream.close();
+        }
+    }
 }
