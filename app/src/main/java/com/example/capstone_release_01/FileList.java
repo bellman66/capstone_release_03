@@ -1,44 +1,32 @@
 package com.example.capstone_release_01;
 
-import android.Manifest;
-import android.app.Activity;
+
 import android.app.ListActivity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
+
 
 // 파일 리스트 관리 - 리스트 엑티비티.
 public class FileList extends ListActivity {
 
-    private static final int FILE_REQUEST_CODE = 2345;
-
     private ArrayList<String> mylist;   // file 내 list.
     private ArrayList<String> list2;
+    private ListView list1;
     private File selected_file; // 선택되는 file.
 
     private File dir;
@@ -52,6 +40,7 @@ public class FileList extends ListActivity {
 
         // 파일내 list 를 가져옴.
         setlistfiles();
+
         File list[] = dir.listFiles();
 
         // list의 이름을 가져옴. + add
@@ -59,10 +48,13 @@ public class FileList extends ListActivity {
             mylist.add(list[i].getName());
         }
 
+        list1 = this.getListView();
+
         // Adapter 생성 , list view 로 매칭.
         ArrayAdapter<String> Adapter = new ArrayAdapter<String>(this,
                 R.layout.activity_file_list, R.id.listview , mylist);
         setListAdapter(Adapter);
+        getListView().setTextFilterEnabled(true);
 
     }
 
@@ -73,42 +65,25 @@ public class FileList extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
-        selected_file = new File(dir , (String) mylist.get(position));
+        selected_file = new File(dir , mylist.get(position));
 
-        try {
-            FILE_READ(selected_file) ;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // 선택되는 순간 setresult 로 보냄.
+        // 파일 내용 저장 - 파일 내용 변수 str
+        String File_str = File_READ2();
 
-        // select 되는 파일이 있을경우 if문 통과.
-        /*
-        if(!selected_file.isFile()) {
-            dir = new File(dir, (String) mylist.get(position));
-            File list[] = dir .listFiles();
+        // Toast.makeText(getApplicationContext(), "txt 내용 : " + File_str, Toast.LENGTH_SHORT).show();
 
-            mylist.clear();
 
-            for(int i = 0 ; i<list.length ; i++)
-            {
-                mylist.add(list[i].getName());
-            }
-            Toast.makeText(getApplicationContext(),file.toString() , Toast.LENGTH_LONG).show();
-
-            setListAdapter
-                    (new ArrayAdapter
-                            (this, R.layout.activity_file_list,mylist)
-                    );
-        }
-        else {
-        */
             Intent resultintent = new Intent();
+            Bundle bundle = new Bundle();
+            bundle.putString("File_str", File_str );
+
             // some value 안에 원하는 평서문을 넣어줌. 그럼보내게됨.
-            resultintent.putStringArrayListExtra("result", list2 );
+            resultintent.putExtras(bundle);
             setResult(RESULT_OK , resultintent);
             finish();
+
         // }
+
     }
 
 
@@ -159,47 +134,34 @@ public class FileList extends ListActivity {
         }
     }
 
-    private void FILE_READ(File selected_file) throws IOException {
+    private String File_READ2() {
 
-        if (!mylist.isEmpty()){
-            mylist.clear();
-        }
-        if(!list2.isEmpty()){
-            list2.clear();
+        if(!selected_file.exists()){
+            Toast.makeText(this, "파일 존재 x", Toast.LENGTH_SHORT).show();
         }
 
-        String fileString = new String();
-        FileInputStream inputStream = null;
-        ByteArrayOutputStream byteArrayOutputStream = null;
+        StringBuffer strBuffer = new StringBuffer();
 
-        try {
-            inputStream = new FileInputStream(selected_file);
-            byteArrayOutputStream = new ByteArrayOutputStream();
+        try{
 
-            int len = 0;
-            byte[] buf = new byte[1024];
-
-            while((len = inputStream.read(buf)) != -1){
-                byteArrayOutputStream.write(buf,0,len);
+            InputStream is = new FileInputStream(selected_file.getPath());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line="";
+            while((line=reader.readLine())!=null){
+                strBuffer.append(line+"\n");
             }
 
-            byte[] fileArray = byteArrayOutputStream.toByteArray();
-            fileString = fileArray.toString();
+            reader.close();
+            is.close();
 
-            String[] str_1 = fileString.split(".");
-
-            for(int i = 0 ; i<str_1.length ; i++) {
-                list2.add(str_1[i]);
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        finally {
-            inputStream.close();
-            byteArrayOutputStream.close();
+        catch (IOException e){
+            e.printStackTrace();
+            return "";
         }
+
+        return strBuffer.toString();
+
     }
+
 }

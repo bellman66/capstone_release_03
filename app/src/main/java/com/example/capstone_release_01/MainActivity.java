@@ -2,16 +2,8 @@ package com.example.capstone_release_01;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Environment;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -19,35 +11,25 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import org.w3c.dom.Text;
-import java.io.File;
-import java.nio.channels.SelectableChannel;
 import java.util.ArrayList;
-import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity {
     private Activity mainActivity = this;
 
+    // API 요청을 분리하기 위한 요청 코드
+    private static final int FILE_REQUEST_CODE = 2345;
     private static final int REQUEST_EXTERNAL_STORAGE = 1111;
     private int permissioncheck_read ;
     private int permissioncheck_write;
 
-    // API 요청을 분리하기 위한 요청 코드
-    private static final int FILE_REQUEST_CODE = 2345;
-
     Button start;   // START 버튼
     Button GetList;     // 구현되지않음 리스트를 가져오는 버튼.
-    ArrayList<String> file_text;    // 파일에서 오는 텍스트.
+    String File_str;
     TextView Select_file;
-
-    // 파일에서 반환되는 list 를 받는값    구현되지않음
-    List<String> Filelist;
 
 
     // 파일을 가져오는 엑티비티 구현
@@ -66,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         start = (Button) findViewById(R.id.start_reg);
         GetList = (Button) findViewById(R.id.get_list);
         Select_file = (TextView)findViewById(R.id.select_File);
+        File_str = null;
 
         // filelist 객체
         FL = new FileList();
@@ -82,21 +65,11 @@ public class MainActivity extends AppCompatActivity {
             // 클릭 실행 메소드.
             @Override
             public void onClick(View v) {
-                /*
-                if(!file_text.isEmpty()){
-                    file_text.clear();
-                }
-                */
-
-
-                // 리스트 클릭이 되는지 확인하는 메소드.
-                Toast.makeText(getApplicationContext()," GET LIST 클릭 " , Toast.LENGTH_LONG).show();
 
                 // INTENT - FILELIST 객체로 보내는 MESSAGE 제작.
                 Intent intent = new Intent(getApplicationContext(),FileList.class);
-                // INTENT 실행.
-                // startActivity(intent);
 
+                // 결과값 요청.
                 startActivityForResult(intent,FILE_REQUEST_CODE);
 
             }
@@ -106,13 +79,22 @@ public class MainActivity extends AppCompatActivity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Operator . class 로 보내는 intent 작성.
-                Toast.makeText(getApplicationContext()," START 클릭 " , Toast.LENGTH_LONG).show();
-                // INTENT
-                Intent intent = new Intent(getApplicationContext(),Operator_API_FILE.class);
-                intent.putStringArrayListExtra("Text", file_text);
-                // INTENT 실행.
-                startActivity(intent);
+
+                if(File_str == null){
+                    Toast.makeText(getApplicationContext()," 지정된 파일이 없습니다. " , Toast.LENGTH_LONG).show();
+                }
+                else {
+                    // Operator . class 로 보내는 intent 작성.
+                    Toast.makeText(getApplicationContext(), " 발표 연습 시작 ", Toast.LENGTH_LONG).show();
+                    // INTENT
+                    Intent intent = new Intent(getApplicationContext(), Operator_API_FILE.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("File_str", File_str);
+
+                    intent.putExtras(bundle);
+                    // INTENT 실행.
+                    startActivity(intent);
+                }
             }
         });
     }
@@ -125,16 +107,13 @@ public class MainActivity extends AppCompatActivity {
        if(resultCode == RESULT_OK){
            switch (requestCode) {
                case FILE_REQUEST_CODE:
-                    file_text = data.getStringArrayListExtra("result");
-                    /*
-                    String str;
-                    for(int i =0 ; i < file_text.size() ; i++) {
-                     str = (String) file_text.get(i);
-                     Select_file.append(str);
-                    }
-                    */
-                    Select_file.setText(file_text.get(1));
-                    break;
+
+                   // 정보를 받는 부분.
+                   File_str = data.getStringExtra("File_str");
+
+                   Select_file.setText(File_str);
+
+                   break;
            }
        }
         super.onActivityResult(requestCode, resultCode, data);

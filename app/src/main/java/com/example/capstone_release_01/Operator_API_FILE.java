@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Handler;
-import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -18,33 +16,35 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Operator_API_FILE extends AppCompatActivity {
 
     private static final int REQUEST_CODE = 1234;
+
     // 다음으로 넘기는 Button
     Button next_button;
     // 보여지는 text
     TextView FILE_Text;
     TextView API_Text;
 
-    Thread thread;
-
     // 버튼 클릭시 음성인식과 함께 텍스트를 한줄한줄 읽어주는 역할.
     // 해당 버튼 횟수는 텍스트 스트링으로 쪼개고 그 전체 횟수를 가져옴. 구현되지않음/
-    private int clickcount = -1;
-    private static final int send_msg = 100;
+    private int clickcount;
 
     Dialog match_text_dialog;
     ListView textlist;
     ArrayList<String> matches_text; // API 에서 받는 리스트 텍스트
+
     ArrayList<String> Intent_text; // 파일 저장으로 받은 리스트 텍스트.
     ArrayList<Integer> result;
     ArrayList<List> result_keyword;
+
+    String File_str;
     Intent intent;
+    Intent google_intent;
 
     // 초기 지정 - oncreate
     @Override
@@ -52,25 +52,47 @@ public class Operator_API_FILE extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_operator__api__file);
 
+        // 버튼 , 텍스트 매핑.
         next_button = (Button) findViewById(R.id.next_button);
         FILE_Text = (TextView) findViewById(R.id.File_Text);
         API_Text = (TextView) findViewById(R.id.API_Text);
-        result.clear();
-        result_keyword.clear();
+
+        result = new ArrayList<>();
+        result_keyword = new ArrayList<>();
+        Intent_text = new ArrayList<>();
+
+        // Main 에서 주는 intent 를 받음.
+        intent = getIntent();
+
+        clickcount = -1;
+
+
+        if(!result.isEmpty()){
+            result.clear();
+        }
+        if(!result_keyword.isEmpty())
+        {
+            result_keyword.clear();
+        }
 
         Set_FILE_Text();
+
     }
 
     // Intent 로 부터 받은 텍스트 설정.
     private void Set_FILE_Text() {
-        Intent_text = intent.getStringArrayListExtra("Text");
+        File_str = intent.getStringExtra("File_str");
 
-        String str;
-
-        for(int i =0 ; i < Intent_text.size() ; i++) {
-            str = (String) Intent_text.get(i);
-            FILE_Text.append(str);
+        if(!Intent_text.isEmpty()) {
+            Intent_text.clear();
         }
+
+        // . 단위로 스플릿해서 words 에 넣음
+        String[] words = File_str.split("[.]");
+
+        // Intent_text 변수에 . 단위로 잘린 word를 넣음.
+        Intent_text.addAll(Arrays.asList(words));
+
     }
 
     // ==============================================================================================
@@ -82,9 +104,14 @@ public class Operator_API_FILE extends AppCompatActivity {
         next_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                // 인터넷 연결시.
                 if(Connect()){
                     // 요청을 확인하는 카운팅.
-                    if( (clickcount++) >= Intent_text.size()){
+
+                    clickcount ++ ;
+
+                    if( (clickcount) >= Intent_text.size()){
                         Toast.makeText(getApplicationContext(),"발표 마무리",Toast.LENGTH_LONG).show();
 
                         Intent intent = new Intent(getApplicationContext(),result.class);
@@ -95,16 +122,24 @@ public class Operator_API_FILE extends AppCompatActivity {
                         return;
                     }
                     else {
+                        if(clickcount < 0 || clickcount > Intent_text.size()){
+                            Toast.makeText(getApplicationContext(),"검사 종료가 되었습니다",Toast.LENGTH_LONG).show();
+                            return ;
+                        }
                         // 한줄식 세팅되는 텍스트
                         FILE_Text.setText(Intent_text.get(clickcount));
-                    }
 
-                    // INTENT - 구글 API 서버로 요청하는 INTENT
-                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                    // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
-                    startActivityForResult(intent , REQUEST_CODE);
+                        // INTENT - 구글 API 서버로 요청하는 INTENT
+                        // 있을 경우 초기화.
+
+
+                        google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+                        // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+                        google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                        // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+                        startActivityForResult(google_intent , REQUEST_CODE);
+                    }
                 }
 
                 // 인터넷 연결 X 경우
@@ -142,6 +177,9 @@ public class Operator_API_FILE extends AppCompatActivity {
 
             // Apapter 실행.
             textlist.setAdapter(adapter);
+
+            // 설정된 다이어로그 보여줌
+            match_text_dialog.show();
             // 클릭된 값 도출.
             textlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -150,12 +188,17 @@ public class Operator_API_FILE extends AppCompatActivity {
                     API_Text.setText(matches_text.get(position));
 
                     // 여기서 matches_text.get(position) 와 Intent_text.get(clickcount) 사용
-                    result.add(100 - getDistance(matches_text.get(position),Intent_text.get(clickcount)));
+                    int shame = 100 - getDistance(matches_text.get(position),Intent_text.get(clickcount));
+                    result.add(shame);
+                    Toast.makeText(getApplicationContext(),"발음 정확도 : " + shame , Toast.LENGTH_LONG).show();
                     // result_keyword.add(FindKeyWord(Intent_text.get(clickcount)));
+
+                    // 닫고 제거
                     match_text_dialog.hide();
+                    match_text_dialog.dismiss();
                 }
             });
-            match_text_dialog.show();
+
         }
     }
 
@@ -172,7 +215,10 @@ public class Operator_API_FILE extends AppCompatActivity {
         else
             return  false;
     }
+
     // 거리유사도 비교 .
+    // =============================== 거리유사도와 유사도 비교하는 부분 개선해야함.
+
     public static int getDistance(String s1, String s2) {
         int longStrLen = s1.length() + 1;
         int shortStrLen = s2.length() + 1; // 긴 단어 만큼 크기가 나올 것이므로, 가장 긴단어 에 맞춰 Cost를 계산
