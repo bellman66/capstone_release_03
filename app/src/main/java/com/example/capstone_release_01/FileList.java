@@ -144,8 +144,9 @@ public class FileList extends ListActivity {
 
         try{
 
-            InputStream is = new FileInputStream(selected_file.getPath());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            FileInputStream is = new FileInputStream(selected_file.getPath());
+            InputStreamReader inputStreamReader = new InputStreamReader(is,"MS949");
+            BufferedReader reader = new BufferedReader(inputStreamReader);
             String line="";
             while((line=reader.readLine())!=null){
                 strBuffer.append(line+"\n");

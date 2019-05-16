@@ -1,7 +1,9 @@
 package com.example.capstone_release_01;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -10,8 +12,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -111,17 +111,12 @@ public class Operator_API_FILE extends AppCompatActivity {
 
                     clickcount ++ ;
 
-                    if( (clickcount) >= Intent_text.size()){
-                        Toast.makeText(getApplicationContext(),"발표 마무리",Toast.LENGTH_LONG).show();
-
-                        Intent intent = new Intent(getApplicationContext(),result.class);
-                        intent.putExtra("result" , result);
-                        // INTENT 실행.
-                        startActivity(intent);
-
-                        return;
-                    }
-                    else {
+                        if( (clickcount) >= (Intent_text.size()-1))
+                        {
+                            // 안내 메세지 뜸.
+                            showmessage();
+                        }
+                        else {
                         if(clickcount < 0 || clickcount > Intent_text.size()){
                             Toast.makeText(getApplicationContext(),"검사 종료가 되었습니다",Toast.LENGTH_LONG).show();
                             return ;
@@ -160,6 +155,7 @@ public class Operator_API_FILE extends AppCompatActivity {
         // 요청코드(REQUEST_CODE)를 통해서 구분.
         if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
 
+            /*
             // DIALOG 제작 - API 에서 받은 음성인식을
             match_text_dialog = new Dialog(Operator_API_FILE.this);
             // dialog_matches_frag.xml 화면 사용.
@@ -180,6 +176,8 @@ public class Operator_API_FILE extends AppCompatActivity {
 
             // 설정된 다이어로그 보여줌
             match_text_dialog.show();
+
+
             // 클릭된 값 도출.
             textlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -188,7 +186,7 @@ public class Operator_API_FILE extends AppCompatActivity {
                     API_Text.setText(matches_text.get(position));
 
                     // 여기서 matches_text.get(position) 와 Intent_text.get(clickcount) 사용
-                    int shame = 100 - getDistance(matches_text.get(position),Intent_text.get(clickcount));
+                    int shame = getDistance(matches_text.get(position),Intent_text.get(clickcount));
                     result.add(shame);
                     Toast.makeText(getApplicationContext(),"발음 정확도 : " + shame , Toast.LENGTH_LONG).show();
                     // result_keyword.add(FindKeyWord(Intent_text.get(clickcount)));
@@ -198,7 +196,21 @@ public class Operator_API_FILE extends AppCompatActivity {
                     match_text_dialog.dismiss();
                 }
             });
+            */
 
+            matches_text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            API_Text.setText(matches_text.get(0));
+
+            int shame = getDistance(matches_text.get(0),Intent_text.get(clickcount));
+            int result_int = ((matches_text.get(0).length()-shame) * 100) / matches_text.get(0).length() ;
+            if(result_int  < 0){
+                result_int = 0;
+            }
+            else if(result_int  > 100){
+                result_int = 100;
+            }
+            result.add(result_int);
+            Toast.makeText(getApplicationContext(),"발음 정확도 : " + result_int , Toast.LENGTH_LONG).show();
         }
     }
 
@@ -247,6 +259,38 @@ public class Operator_API_FILE extends AppCompatActivity {
         // 가장 마지막값 리턴
         return cost[longStrLen - 1];
     }
+
+    public void showmessage() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("안내");
+        builder.setMessage("발표가 완료되었습니다 \n결과를 확인하시겠습니까?");
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+
+        builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                Intent intent = new Intent(getApplicationContext(),result.class);
+                intent.putExtra("result" , result);
+                // INTENT 실행.
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(getApplicationContext(),"발표 마무리",Toast.LENGTH_LONG).show();
+                finish();
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
 }
 
 
