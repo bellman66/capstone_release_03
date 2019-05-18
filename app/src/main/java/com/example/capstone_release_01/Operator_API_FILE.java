@@ -115,6 +115,7 @@ public class Operator_API_FILE extends AppCompatActivity {
                         {
                             // 안내 메세지 뜸.
                             showmessage();
+
                         }
                         else {
                         if(clickcount < 0 || clickcount > Intent_text.size()){
@@ -271,11 +272,11 @@ public class Operator_API_FILE extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                Intent intent = new Intent(getApplicationContext(),result.class);
-                intent.putExtra("result" , result);
+                Intent intent_result = new Intent(getApplicationContext(),result.class);
+                intent_result.putIntegerArrayListExtra("result" , result);
                 // INTENT 실행.
-                startActivity(intent);
-                finish();
+                startActivity(intent_result);
+
             }
         });
 
