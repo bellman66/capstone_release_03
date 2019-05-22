@@ -15,6 +15,8 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.google.cloud.language.v1.AnalyzeEntitiesResponse;
+
 import java.lang.String;
 import java.util.ArrayList;
 
@@ -22,8 +24,10 @@ import java.util.ArrayList;
 public class result extends AppCompatActivity {
 
     TextView set_result;
+    TextView set_entityList;
 
     ArrayList<Integer> result_int;
+    ArrayList<String> entityList;
     LineChart lineChart;
     Intent intent;
 
@@ -32,17 +36,20 @@ public class result extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
-        set_result = (TextView) findViewById(R.id.set_result);
-
         Set_FILE_Text();
 
         StartChart();
 
+        // Startkeyword();
     }
 
     private void Set_FILE_Text() {
+        set_result = (TextView) findViewById(R.id.set_result);
+        set_entityList = (TextView) findViewById(R.id.set_entityList);
+
         intent = getIntent();
         result_int = intent.getIntegerArrayListExtra("result");
+        entityList = intent.getStringArrayListExtra("entityList");
     }
 
 
@@ -101,6 +108,10 @@ public class result extends AppCompatActivity {
         lineChart.animateY(2000, Easing.EasingOption.EaseInCubic);
         lineChart.invalidate();
 
+    }
+
+    private void Startkeyword() {
+        set_entityList.setText(entityList.get(0));
     }
 
 }

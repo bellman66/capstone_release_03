@@ -1,5 +1,13 @@
 package com.example.capstone_release_01;
 
+import com.google.cloud.language.v1.AnalyzeEntitiesRequest;
+import com.google.cloud.language.v1.AnalyzeEntitiesResponse;
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.Document.Type;
+import com.google.cloud.language.v1.EncodingType;
+import com.google.cloud.language.v1.Entity;
+import com.google.cloud.language.v1.LanguageServiceClient;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -20,12 +28,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Operator_API_FILE extends AppCompatActivity {
+public class  Operator_API_FILE extends AppCompatActivity {
 
     private static final int REQUEST_CODE = 1234;
 
     // 다음으로 넘기는 Button
     Button next_button;
+    Button end_button;
     // 보여지는 text
     TextView FILE_Text;
     TextView API_Text;
@@ -46,6 +55,8 @@ public class Operator_API_FILE extends AppCompatActivity {
     Intent intent;
     Intent google_intent;
 
+    ArrayList<String> entityList;
+
     // 초기 지정 - oncreate
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +65,14 @@ public class Operator_API_FILE extends AppCompatActivity {
 
         // 버튼 , 텍스트 매핑.
         next_button = (Button) findViewById(R.id.next_button);
+        end_button = (Button) findViewById(R.id.end_button);
         FILE_Text = (TextView) findViewById(R.id.File_Text);
         API_Text = (TextView) findViewById(R.id.API_Text);
 
         result = new ArrayList<>();
         result_keyword = new ArrayList<>();
         Intent_text = new ArrayList<>();
+        entityList = new ArrayList<>();
 
         // Main 에서 주는 intent 를 받음.
         intent = getIntent();
@@ -85,6 +98,7 @@ public class Operator_API_FILE extends AppCompatActivity {
 
         if(!Intent_text.isEmpty()) {
             Intent_text.clear();
+            entityList.clear();
         }
 
         // . 단위로 스플릿해서 words 에 넣음
@@ -92,6 +106,12 @@ public class Operator_API_FILE extends AppCompatActivity {
 
         // Intent_text 변수에 . 단위로 잘린 word를 넣음.
         Intent_text.addAll(Arrays.asList(words));
+
+        try {
+            entityList = analyzeEntitiesFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -147,6 +167,22 @@ public class Operator_API_FILE extends AppCompatActivity {
 
         });
 
+        // 중간 종료 버튼.
+        end_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(result.isEmpty()){
+                    finish();
+                }
+                else {
+                    Intent intent_result = new Intent(getApplicationContext(), result.class);
+                    intent_result.putIntegerArrayListExtra("result", result);
+                    intent_result.putStringArrayListExtra("entityList" , entityList);
+                    // INTENT 실행.
+                    startActivity(intent_result);
+                }
+            }
+        });
     }
 
     @Override
@@ -274,6 +310,7 @@ public class Operator_API_FILE extends AppCompatActivity {
 
                 Intent intent_result = new Intent(getApplicationContext(),result.class);
                 intent_result.putIntegerArrayListExtra("result" , result);
+                intent_result.putStringArrayListExtra("entityList" , entityList);
                 // INTENT 실행.
                 startActivity(intent_result);
 
@@ -291,6 +328,31 @@ public class Operator_API_FILE extends AppCompatActivity {
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
+
+    public ArrayList<String> analyzeEntitiesFile() throws Exception { // 키워드 추출 (추가)
+
+        try (LanguageServiceClient language = LanguageServiceClient.create()) {
+
+            Document doc2 = Document.newBuilder().setContent(File_str).setType(Type.PLAIN_TEXT).build();
+            ArrayList<String> entityList2 = new ArrayList<>();
+            entityList2.clear();
+
+            AnalyzeEntitiesRequest request = AnalyzeEntitiesRequest.newBuilder().setDocument(doc2).setEncodingType(EncodingType.UTF16).build();
+
+            AnalyzeEntitiesResponse response = language.analyzeEntities(request);
+
+            for(Entity entity : response.getEntitiesList()) {
+                entityList2.add(entity.getName());
+            }
+
+            Toast.makeText(getApplicationContext(),entityList2.get(0) , Toast.LENGTH_LONG).show();
+
+            return entityList2;
+        }
+    }
+
+
+
 
 }
 

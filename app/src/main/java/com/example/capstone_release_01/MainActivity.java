@@ -23,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
     // API 요청을 분리하기 위한 요청 코드
     private static final int FILE_REQUEST_CODE = 2345;
     private static final int REQUEST_EXTERNAL_STORAGE = 1111;
-    private int permissioncheck_read ;
-    private int permissioncheck_write;
 
     Button start;   // START 버튼
     Button GetList;     // 구현되지않음 리스트를 가져오는 버튼.
@@ -39,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // activity_main.xml 화면 사용
         setContentView(R.layout.activity_main);
 
         setPermissioncheck();
@@ -105,15 +102,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
        // FileList 에서 받는 텍스트 종류.
        if(resultCode == RESULT_OK){
-           switch (requestCode) {
-               case FILE_REQUEST_CODE:
+           if (requestCode == FILE_REQUEST_CODE) {// 정보를 받는 부분.
+               File_str = data.getStringExtra("File_str");
 
-                   // 정보를 받는 부분.
-                   File_str = data.getStringExtra("File_str");
-
-                   Select_file.setText(File_str);
-
-                   break;
+               Select_file.setText(File_str);
            }
        }
         super.onActivityResult(requestCode, resultCode, data);
@@ -121,8 +113,8 @@ public class MainActivity extends AppCompatActivity {
 
     // 퍼미션 체크
     private void setPermissioncheck() {
-        permissioncheck_read = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
-        permissioncheck_write = ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permissioncheck_read = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE);
+        int permissioncheck_write = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         if(permissioncheck_read == PackageManager.PERMISSION_DENIED || permissioncheck_write == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_EXTERNAL_STORAGE);
@@ -133,20 +125,18 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        switch (requestCode) {
-            case REQUEST_EXTERNAL_STORAGE:
-                for (int i = 0; i < permissions.length; i++) {
-                    String permission = permissions[i];
-                    int grantResult = grantResults[i];
-                    if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                        if(grantResult == PackageManager.PERMISSION_GRANTED) {
-                            Toast.makeText(getApplicationContext(),"read/write storage permission authorized" , Toast.LENGTH_LONG).show();
-                        } else {
-                            Toast.makeText(getApplicationContext(),"read/write storage permission denied" , Toast.LENGTH_LONG).show();
-                        }
+        if (requestCode == REQUEST_EXTERNAL_STORAGE) {
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+                if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(getApplicationContext(), "read/write storage permission authorized", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "read/write storage permission denied", Toast.LENGTH_LONG).show();
                     }
                 }
-                break;
+            }
         }
     }
 }
