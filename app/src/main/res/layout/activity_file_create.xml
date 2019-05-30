@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".FileCreate">
+
+    <EditText
+        android:id="@+id/Title"
+        android:layout_width="400dp"
+        android:layout_height="57dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="68dp"
+        android:ems="10"
+        android:hint="Title"
+        android:inputType="textPersonName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/Contents"
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_margin="5dp"
+        android:ems="10"
+        android:gravity="top"
+        android:hint="Contents"
+        android:inputType="textMultiLine"
+        android:lines="8"
+        android:maxLines="15"
+        android:minLines="10"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/Save"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Title"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/Save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="212dp"
+        android:layout_marginEnd="192dp"
+        android:onClick="@string/app_name"
+        android:text="저장"
+        app:layout_constraintEnd_toEndOf="@+id/Contents"
+        app:layout_constraintTop_toBottomOf="@+id/Contents" />
+
+    <Button
+        android:id="@+id/Back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="212dp"
+        android:layout_marginEnd="80dp"
+        android:text="뒤로"
+        app:layout_constraintEnd_toEndOf="@+id/Contents"
+        app:layout_constraintTop_toBottomOf="@+id/Contents" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="26dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="26dp"
+        android:text="파일 작성하기"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</android.support.constraint.ConstraintLayout>

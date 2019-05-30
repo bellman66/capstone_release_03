@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,6 +22,7 @@ import com.google.cloud.language.v1.AnalyzeEntitiesResponse;
 
 import java.lang.String;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class result extends AppCompatActivity {
@@ -28,8 +32,15 @@ public class result extends AppCompatActivity {
 
     ArrayList<Integer> result_int;
     ArrayList<String> entityList;
+    ArrayList<String> result_TEXT;
+    ArrayList<String> Intent_text;
+
+    HashMap<String,String> inputdata;
+    ArrayList<HashMap<String,String>> data;
+
     LineChart lineChart;
     Intent intent;
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +48,8 @@ public class result extends AppCompatActivity {
         setContentView(R.layout.activity_result);
 
         Set_FILE_Text();
-
         StartChart();
+        StartList();
 
         // Startkeyword();
     }
@@ -46,10 +57,31 @@ public class result extends AppCompatActivity {
     private void Set_FILE_Text() {
         set_result = (TextView) findViewById(R.id.set_result);
         set_entityList = (TextView) findViewById(R.id.set_entityList);
+        listView = (ListView) findViewById(R.id.list_view);
+
+        inputdata = new HashMap<>();
+        data = new ArrayList<HashMap<String, String>>();
 
         intent = getIntent();
         result_int = intent.getIntegerArrayListExtra("result");
         entityList = intent.getStringArrayListExtra("entityList");
+
+        result_TEXT = intent.getStringArrayListExtra("result_TEXT");
+        Intent_text = intent.getStringArrayListExtra("Intent_text");
+
+        for(int i = 0 ; i < result_TEXT.size() ; i++){
+            inputdata = new HashMap<>();
+            inputdata.put("Intent_text" , String.valueOf(i+1)+"번 원문 : "+Intent_text.get(i));
+
+            // 빈문자일 경우 실패를 입력.
+            if(TextUtils.isEmpty(result_TEXT.get(i))){
+                inputdata.put("result_TEXT" , String.valueOf(i+1)+"번 인식 : 실패");
+            }
+            else inputdata.put("result_TEXT" , String.valueOf(i+1)+"번 인식 : "+result_TEXT.get(i));
+
+            data.add(inputdata);
+
+        }
     }
 
 
@@ -112,6 +144,12 @@ public class result extends AppCompatActivity {
 
     private void Startkeyword() {
         set_entityList.setText(entityList.get(0));
+    }
+
+    private void StartList() {
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this,data,android.R.layout.simple_list_item_2,new String[]{"Intent_text","result_TEXT"},new int[]{android.R.id.text1,android.R.id.text2});
+
+        listView.setAdapter(simpleAdapter);
     }
 
 }

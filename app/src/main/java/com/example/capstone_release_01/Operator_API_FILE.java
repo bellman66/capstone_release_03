@@ -7,6 +7,7 @@ import com.google.cloud.language.v1.Document.Type;
 import com.google.cloud.language.v1.EncodingType;
 import com.google.cloud.language.v1.Entity;
 import com.google.cloud.language.v1.LanguageServiceClient;
+import com.google.protobuf.StringValue;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -15,6 +16,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Handler;
+import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -41,14 +44,13 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
     // 버튼 클릭시 음성인식과 함께 텍스트를 한줄한줄 읽어주는 역할.
     // 해당 버튼 횟수는 텍스트 스트링으로 쪼개고 그 전체 횟수를 가져옴. 구현되지않음/
-    private int clickcount;
+    int clickcount;
 
-    Dialog match_text_dialog;
-    ListView textlist;
     ArrayList<String> matches_text; // API 에서 받는 리스트 텍스트
 
     ArrayList<String> Intent_text; // 파일 저장으로 받은 리스트 텍스트.
     ArrayList<Integer> result;
+    ArrayList<String> result_TEXT;
     ArrayList<List> result_keyword;
 
     String File_str;
@@ -56,6 +58,10 @@ public class  Operator_API_FILE extends AppCompatActivity {
     Intent google_intent;
 
     ArrayList<String> entityList;
+    private int mode;
+    private int check;
+    BackThread thread;
+    Handler handler;
 
     // 초기 지정 - oncreate
     @Override
@@ -70,6 +76,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
         API_Text = (TextView) findViewById(R.id.API_Text);
 
         result = new ArrayList<>();
+        result_TEXT = new ArrayList<>();
         result_keyword = new ArrayList<>();
         Intent_text = new ArrayList<>();
         entityList = new ArrayList<>();
@@ -78,7 +85,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
         intent = getIntent();
 
         clickcount = -1;
-
+        check = 1;
 
         if(!result.isEmpty()){
             result.clear();
@@ -90,11 +97,13 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
         Set_FILE_Text();
 
+
     }
 
     // Intent 로 부터 받은 텍스트 설정.
     private void Set_FILE_Text() {
         File_str = intent.getStringExtra("File_str");
+        mode = intent.getIntExtra("mode",0);
 
         if(!Intent_text.isEmpty()) {
             Intent_text.clear();
@@ -107,8 +116,11 @@ public class  Operator_API_FILE extends AppCompatActivity {
         // Intent_text 변수에 . 단위로 잘린 word를 넣음.
         Intent_text.addAll(Arrays.asList(words));
 
+        //Toast.makeText(getApplicationContext(),Intent_text.get(0),Toast.LENGTH_LONG).show();
+
         try {
             entityList = analyzeEntitiesFile();
+            Toast.makeText(getApplicationContext(),entityList.get(0),Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -126,35 +138,19 @@ public class  Operator_API_FILE extends AppCompatActivity {
             public void onClick(View v) {
 
                 // 인터넷 연결시.
-                if(Connect()){
+                if (Connect()) {
                     // 요청을 확인하는 카운팅.
 
-                    clickcount ++ ;
+                    clickcount++;
 
-                        if( (clickcount) >= (Intent_text.size()-1))
-                        {
-                            // 안내 메세지 뜸.
-                            showmessage();
-
-                        }
-                        else {
-                        if(clickcount < 0 || clickcount > Intent_text.size()){
-                            Toast.makeText(getApplicationContext(),"검사 종료가 되었습니다",Toast.LENGTH_LONG).show();
-                            return ;
-                        }
-                        // 한줄식 세팅되는 텍스트
-                        FILE_Text.setText(Intent_text.get(clickcount));
-
-                        // INTENT - 구글 API 서버로 요청하는 INTENT
-                        // 있을 경우 초기화.
-
-
-                        google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-                        // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
-                        google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                        // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
-                        startActivityForResult(google_intent , REQUEST_CODE);
+                    if (mode == 0) {
+                        startmode3();
+                    }
+                    else if (mode == 1) {
+                        startmode2();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "잘못된 모드 선택", Toast.LENGTH_LONG).show();
+                        return;
                     }
                 }
 
@@ -164,7 +160,6 @@ public class  Operator_API_FILE extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "인터넷 연결 요망", Toast.LENGTH_LONG).show();
                 }
             }
-
         });
 
         // 중간 종료 버튼.
@@ -176,13 +171,28 @@ public class  Operator_API_FILE extends AppCompatActivity {
                 }
                 else {
                     Intent intent_result = new Intent(getApplicationContext(), result.class);
-                    intent_result.putIntegerArrayListExtra("result", result);
+                    intent_result.putIntegerArrayListExtra("result" , result);
+                    intent_result.putStringArrayListExtra("result_TEXT" , result_TEXT);
+                    intent_result.putStringArrayListExtra("Intent_text" , Intent_text);
                     intent_result.putStringArrayListExtra("entityList" , entityList);
                     // INTENT 실행.
                     startActivity(intent_result);
                 }
             }
         });
+
+        handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if(msg.what == 0){   // Message id 가 0 이면
+                    Toast.makeText(getApplicationContext(),String.valueOf(clickcount),Toast.LENGTH_LONG).show();
+                }
+                else {
+                    FILE_Text.setText(Intent_text.get(clickcount));
+                }
+            }
+        };
     }
 
     @Override
@@ -191,49 +201,6 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
         // 요청코드(REQUEST_CODE)를 통해서 구분.
         if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
-
-            /*
-            // DIALOG 제작 - API 에서 받은 음성인식을
-            match_text_dialog = new Dialog(Operator_API_FILE.this);
-            // dialog_matches_frag.xml 화면 사용.
-            match_text_dialog.setContentView(R.layout.dialog_matches_frag);
-            // title 이름 지정.
-            match_text_dialog.setTitle("매칭되는 텍스트 선택");
-
-            // dialog_matches_frag.xml 화면 중 list 찾음.
-            textlist = (ListView) match_text_dialog.findViewById(R.id.list);
-
-            // API 에서 받은 DATA 를 ArrayList 형태로 가져옴.
-            matches_text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            // Apapter 에 매칭.
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this , android.R.layout.simple_list_item_1,matches_text);
-
-            // Apapter 실행.
-            textlist.setAdapter(adapter);
-
-            // 설정된 다이어로그 보여줌
-            match_text_dialog.show();
-
-
-            // 클릭된 값 도출.
-            textlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    // 말하는 단어 매칭.
-                    API_Text.setText(matches_text.get(position));
-
-                    // 여기서 matches_text.get(position) 와 Intent_text.get(clickcount) 사용
-                    int shame = getDistance(matches_text.get(position),Intent_text.get(clickcount));
-                    result.add(shame);
-                    Toast.makeText(getApplicationContext(),"발음 정확도 : " + shame , Toast.LENGTH_LONG).show();
-                    // result_keyword.add(FindKeyWord(Intent_text.get(clickcount)));
-
-                    // 닫고 제거
-                    match_text_dialog.hide();
-                    match_text_dialog.dismiss();
-                }
-            });
-            */
 
             matches_text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             API_Text.setText(matches_text.get(0));
@@ -247,7 +214,10 @@ public class  Operator_API_FILE extends AppCompatActivity {
                 result_int = 100;
             }
             result.add(result_int);
+            result_TEXT.add(matches_text.get(0));
+
             Toast.makeText(getApplicationContext(),"발음 정확도 : " + result_int , Toast.LENGTH_LONG).show();
+            check = 2;
         }
     }
 
@@ -310,6 +280,8 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
                 Intent intent_result = new Intent(getApplicationContext(),result.class);
                 intent_result.putIntegerArrayListExtra("result" , result);
+                intent_result.putStringArrayListExtra("result_TEXT" , result_TEXT);
+                intent_result.putStringArrayListExtra("Intent_text" , Intent_text);
                 intent_result.putStringArrayListExtra("entityList" , entityList);
                 // INTENT 실행.
                 startActivity(intent_result);
@@ -332,7 +304,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
     public ArrayList<String> analyzeEntitiesFile() throws Exception { // 키워드 추출 (추가)
 
         try (LanguageServiceClient language = LanguageServiceClient.create()) {
-
+            Toast.makeText(getApplicationContext(),String.valueOf(2),Toast.LENGTH_LONG).show();
             Document doc2 = Document.newBuilder().setContent(File_str).setType(Type.PLAIN_TEXT).build();
             ArrayList<String> entityList2 = new ArrayList<>();
             entityList2.clear();
@@ -351,6 +323,99 @@ public class  Operator_API_FILE extends AppCompatActivity {
         }
     }
 
+
+    private void startmode1(){
+
+        //#####################이 부분 수정하면됨.
+
+        if(clickcount != -1){
+            clickcount = -1;
+        }
+        for (int i = 0 ; i < Intent_text.size() ; i++) {
+            clickcount++;
+
+            handler.sendEmptyMessage(0);
+
+            google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+            google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount) + "번");
+            // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+            startActivityForResult(google_intent, REQUEST_CODE);
+
+            //########### 문제점 발견
+            //########### 순식간에 for문을 다돌아서 모든 메소드가 다실행되고 나서 입력받는 창이 나옴.
+
+        }
+
+        showmessage();
+
+
+    }
+
+    private void startmode2() {
+        if( (clickcount) >= (Intent_text.size()))
+        {
+            // 안내 메세지 뜸.
+            showmessage();
+        }
+        else {
+            if(clickcount < 0 || clickcount > Intent_text.size()){
+                Toast.makeText(getApplicationContext(),"검사 종료가 되었습니다",Toast.LENGTH_LONG).show();
+                return ;
+            }
+            // 한줄식 세팅되는 텍스트
+            FILE_Text.setText(Intent_text.get(clickcount));
+
+            // INTENT - 구글 API 서버로 요청하는 INTENT
+            // 있을 경우 초기화.
+
+
+            google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+            // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+            google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount) + "번");
+            // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+            startActivityForResult(google_intent , REQUEST_CODE);
+        }
+    }
+
+    private void startmode3() {
+        while(true){
+            if( (clickcount) >= (Intent_text.size()-1))
+            {
+                // 안내 메세지 뜸.
+                check = 2;
+                showmessage();
+            }
+            else if(check == 1) {
+                BackThread thread = new BackThread();
+                thread.run();
+                check = 2;
+            }
+        }
+    }
+
+
+    class BackThread extends Thread{
+        @Override
+        public void run() {
+            //******************** 밑에 메소드 수정 요망
+
+                clickcount++;
+
+                handler.sendEmptyMessage(0);
+
+                google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+                google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+                startActivityForResult(google_intent, REQUEST_CODE);
+
+
+        } // end run()
+    } // end class BackThread
 
 
 

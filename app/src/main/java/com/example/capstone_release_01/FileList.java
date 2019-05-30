@@ -35,6 +35,7 @@ public class FileList extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         // 객체 구현.
         mylist = new ArrayList<String>();
 

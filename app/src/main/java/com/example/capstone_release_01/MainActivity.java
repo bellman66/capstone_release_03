@@ -2,8 +2,10 @@ package com.example.capstone_release_01;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -11,7 +13,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
@@ -25,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_EXTERNAL_STORAGE = 1111;
 
     Button start;   // START 버튼
-    Button GetList;     // 구현되지않음 리스트를 가져오는 버튼.
+    Button GetList;     // 구현되지않음 리스트를 가져오는 버튼.]
+    Button Create_file;
     String File_str;
     TextView Select_file;
 
@@ -44,11 +50,13 @@ public class MainActivity extends AppCompatActivity {
         // xml 에서 R.id.~ 을 통해서 버튼 과 텍스트 뷰를 찾고 매칭.
         start = (Button) findViewById(R.id.start_reg);
         GetList = (Button) findViewById(R.id.get_list);
+        Create_file = (Button) findViewById(R.id.create_file);
         Select_file = (TextView)findViewById(R.id.select_File);
         File_str = null;
 
         // filelist 객체
         FL = new FileList();
+
     }
 
     // ON RESUME - 어플이 진행되는 상태. =============================================================
@@ -72,6 +80,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Create_file.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),FileCreate.class);
+                startActivity(intent);
+            }
+        });
+
         // =====   API 요청 및 인터넷 연결 확인 메소드 =====
         start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,17 +98,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     // Operator . class 로 보내는 intent 작성.
-                    Toast.makeText(getApplicationContext(), " 발표 연습 시작 ", Toast.LENGTH_LONG).show();
-                    // INTENT
-                    Intent intent = new Intent(getApplicationContext(), Operator_API_FILE.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("File_str", File_str);
-
-                    intent.putExtras(bundle);
-                    // INTENT 실행.
-                    startActivity(intent);
+                    Select_Mode();
                 }
             }
+
         });
     }
     //==============================================================================================
@@ -138,5 +147,51 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void Select_Mode() {
+        final Dialog match_text_dialog = new Dialog(MainActivity.this);
+        // dialog_matches_frag.xml 화면 사용.
+        match_text_dialog.setContentView(R.layout.dialog_matches_frag);
+        // title 이름 지정.
+        match_text_dialog.setTitle("MODE 선택");
+
+        // dialog_matches_frag.xml 화면 중 list 찾음.
+        ListView textlist = (ListView) match_text_dialog.findViewById(R.id.list);
+
+        final ArrayList<String> matches_text = new ArrayList<String>();
+        matches_text.add("연속 말하기 모드");
+        matches_text.add("반복 말하기 모드");
+
+        //###########################################################################
+        // Apapter 에 매칭.
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this , android.R.layout.simple_list_item_1, matches_text);
+
+        // Apapter 실행.
+        textlist.setAdapter(adapter);
+
+        // 설정된 다이어로그 보여줌
+        match_text_dialog.show();
+
+        textlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // 말하는 단어 매칭.
+
+                    // INTENT
+                    Intent intent = new Intent(getApplicationContext(), Operator_API_FILE.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("File_str", File_str);
+                    bundle.putInt("mode",position);
+                    intent.putExtras(bundle);
+
+                     // INTENT 실행.
+                     startActivity(intent);
+
+                // 닫고 제거
+                match_text_dialog.hide();
+                match_text_dialog.dismiss();
+            }
+        });
     }
 }
