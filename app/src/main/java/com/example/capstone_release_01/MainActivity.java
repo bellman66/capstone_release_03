@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                File_str = data.getStringExtra("File_str");
                title = data.getStringExtra("title");
 
-               Select_file.setText(File_str);
+               Select_file.setText(title);
            }
        }
         super.onActivityResult(requestCode, resultCode, data);

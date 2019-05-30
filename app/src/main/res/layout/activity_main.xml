@@ -9,30 +9,36 @@
         android:layout_width="wrap_content"
         android:layout_height="144dp"
         android:layout_gravity="center"
-        android:layout_margin="20dp"
+        android:layout_marginTop="100dp"
         android:background="@drawable/background_text"
         android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/select_File"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="20dp"
+        android:gravity="center" />
 
     <Button
         android:id="@+id/get_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="30dp"
         android:background="@drawable/button_fileopen"
         android:scaleX="0.7"
-        android:scaleY="0.7"
-        android:text="get_list" />
+        android:scaleY="0.7" />
 
     <Button
         android:id="@+id/create_file"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/button_fileopen"
+        android:background="@drawable/button_filemake"
         android:scaleX="0.7"
-        android:scaleY="0.7"
-        android:text="파일 생성" />
+        android:scaleY="0.7" />
 
     <Button
         android:id="@+id/start_reg"
@@ -41,15 +47,9 @@
         android:layout_gravity="center"
         android:background="@drawable/button_recstart"
         android:scaleX="0.7"
-        android:scaleY="0.7"
-        android:text="테스트 시작" />
+        android:scaleY="0.7" />
 
-    <TextView
-        android:id="@+id/select_File"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:layout_margin="20dp" />
+
 
 
 </LinearLayout>

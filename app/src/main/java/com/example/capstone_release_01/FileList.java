@@ -52,7 +52,7 @@ public class FileList extends ListActivity {
 
         // Adapter 생성 , list view 로 매칭.
         ArrayAdapter<String> Adapter = new ArrayAdapter<String>(this,
-                R.layout.activity_file_list, R.id.listview , mylist);
+                R.layout.activity_file_list , R.id.listview , mylist);
         setListAdapter(Adapter);
         getListView().setTextFilterEnabled(true);
 
