@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     Button GetList;     // 구현되지않음 리스트를 가져오는 버튼.]
     Button Create_file;
     String File_str;
+    String title;
     TextView Select_file;
 
 
@@ -113,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
        if(resultCode == RESULT_OK){
            if (requestCode == FILE_REQUEST_CODE) {// 정보를 받는 부분.
                File_str = data.getStringExtra("File_str");
+               title = data.getStringExtra("title");
 
                Select_file.setText(File_str);
            }
@@ -182,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(getApplicationContext(), Operator_API_FILE.class);
                     Bundle bundle = new Bundle();
                     bundle.putString("File_str", File_str);
+                    bundle.putString("title",title);
                     bundle.putInt("mode",position);
                     intent.putExtras(bundle);
 

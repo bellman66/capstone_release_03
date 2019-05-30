@@ -47,13 +47,13 @@ public class  Operator_API_FILE extends AppCompatActivity {
     int clickcount;
 
     ArrayList<String> matches_text; // API 에서 받는 리스트 텍스트
-
     ArrayList<String> Intent_text; // 파일 저장으로 받은 리스트 텍스트.
     ArrayList<Integer> result;
     ArrayList<String> result_TEXT;
     ArrayList<List> result_keyword;
 
     String File_str;
+    String title;
     Intent intent;
     Intent google_intent;
 
@@ -103,6 +103,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
     // Intent 로 부터 받은 텍스트 설정.
     private void Set_FILE_Text() {
         File_str = intent.getStringExtra("File_str");
+        title = intent.getStringExtra("title");
         mode = intent.getIntExtra("mode",0);
 
         if(!Intent_text.isEmpty()) {
@@ -175,6 +176,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
                     intent_result.putStringArrayListExtra("result_TEXT" , result_TEXT);
                     intent_result.putStringArrayListExtra("Intent_text" , Intent_text);
                     intent_result.putStringArrayListExtra("entityList" , entityList);
+                    intent_result.putExtra("title",title);
                     // INTENT 실행.
                     startActivity(intent_result);
                 }
@@ -283,6 +285,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
                 intent_result.putStringArrayListExtra("result_TEXT" , result_TEXT);
                 intent_result.putStringArrayListExtra("Intent_text" , Intent_text);
                 intent_result.putStringArrayListExtra("entityList" , entityList);
+                intent_result.putExtra("title",title);
                 // INTENT 실행.
                 startActivity(intent_result);
 

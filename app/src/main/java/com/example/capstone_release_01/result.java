@@ -2,9 +2,11 @@ package com.example.capstone_release_01;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -20,6 +22,13 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.cloud.language.v1.AnalyzeEntitiesResponse;
 
+import org.w3c.dom.Text;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.String;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,12 +51,16 @@ public class result extends AppCompatActivity {
     Intent intent;
     ListView listView;
 
+    String title;
+    String input_data;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
         Set_FILE_Text();
+        Startsetresult2();
         StartChart();
         StartList();
 
@@ -58,6 +71,7 @@ public class result extends AppCompatActivity {
         set_result = (TextView) findViewById(R.id.set_result);
         set_entityList = (TextView) findViewById(R.id.set_entityList);
         listView = (ListView) findViewById(R.id.list_view);
+        input_data = null;
 
         inputdata = new HashMap<>();
         data = new ArrayList<HashMap<String, String>>();
@@ -65,9 +79,9 @@ public class result extends AppCompatActivity {
         intent = getIntent();
         result_int = intent.getIntegerArrayListExtra("result");
         entityList = intent.getStringArrayListExtra("entityList");
-
         result_TEXT = intent.getStringArrayListExtra("result_TEXT");
         Intent_text = intent.getStringArrayListExtra("Intent_text");
+        title = intent.getStringExtra("title");
 
         for(int i = 0 ; i < result_TEXT.size() ; i++){
             inputdata = new HashMap<>();
@@ -150,6 +164,48 @@ public class result extends AppCompatActivity {
         SimpleAdapter simpleAdapter = new SimpleAdapter(this,data,android.R.layout.simple_list_item_2,new String[]{"Intent_text","result_TEXT"},new int[]{android.R.id.text1,android.R.id.text2});
 
         listView.setAdapter(simpleAdapter);
+    }
+
+    private void Startsetresult2(){
+        String foldername2 = Environment.getExternalStorageDirectory().getAbsolutePath();
+        foldername2 += "/Capstone_Result";
+        String filename = title + ".txt";
+        String path = foldername2 +"/"+filename;
+
+        if(!TextUtils.isEmpty(input_data)){
+            input_data = null;
+        }
+
+        for(int i = 0 ; i < result_int.size() ; i ++ ){
+            input_data += ( String.valueOf(result_int.get(i)) + " "  );
+        }
+        input_data += " . \n";
+
+        try{
+            File dir = new File(foldername2);
+            //디렉토리 폴더가 없으면 생성함
+
+            if(!dir.exists()){
+                dir.mkdir();
+            }
+
+            dir = new File(path);
+
+
+                FileOutputStream fos = new FileOutputStream(path, true);
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos,"MS949");
+                BufferedWriter writer = new BufferedWriter(outputStreamWriter);
+                writer.write(input_data);
+                writer.flush();
+
+                writer.close();
+                fos.close();
+
+                Toast.makeText(getApplicationContext(),input_data,Toast.LENGTH_LONG).show();
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
 }

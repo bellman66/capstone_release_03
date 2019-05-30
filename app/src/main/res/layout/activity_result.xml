@@ -4,17 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_lightpurple"
     android:orientation="vertical"
     tools:context=".result">
 
     <TextView
+        android:id="@+id/set_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:layout_margin="20dp"
-        android:padding="5dp"
-        android:id="@+id/set_result"
-        android:text="연습 결과">
+        android:layout_marginLeft="52dp"
+        android:background="@drawable/result_text"
+        android:gravity="center|center_horizontal"
+        android:padding="5dp">
 
     </TextView>
 
@@ -27,19 +28,19 @@
     </com.github.mikephil.charting.charts.LineChart>
 
     <TextView
+        android:id="@+id/set_entityList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:layout_margin="10dp"
-        android:padding="20dp"
-        android:id="@+id/set_entityList">
+        android:gravity="center_horizontal"
+        android:padding="20dp">
 
     </TextView>
 
     <ListView
+        android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/list_view"
         android:layout_margin="10dp">
 
     </ListView>

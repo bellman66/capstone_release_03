@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_lightblue"
     tools:context=".FileCreate">
 
     <EditText
@@ -22,8 +23,8 @@
         android:id="@+id/Contents"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_margin="5dp"
+        android:layout_marginStart="8dp"
         android:ems="10"
         android:gravity="top"
         android:hint="Contents"

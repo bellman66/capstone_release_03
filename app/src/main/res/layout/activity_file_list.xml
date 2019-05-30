@@ -3,18 +3,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_lightblue"
     android:orientation="vertical"
     tools:context=".FileList">
 
     <TextView
+        android:id="@+id/hello"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/hello"
-        android:text="문서 선택"/>
+        android:background="@drawable/select_file_txt" />
 
     <TextView
+        android:id="@+id/listview"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/listview"/>
+        android:layout_height="match_parent"
+        android:background="@drawable/list_background"
+        android:textSize="18sp" />
 
 </LinearLayout>

@@ -1,46 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:background="@drawable/background_lightblue"
+    android:orientation="vertical">
 
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="144dp"
         android:layout_gravity="center"
         android:layout_margin="20dp"
-        android:textSize="30sp"
-        android:text="음성 인식"/>
+        android:background="@drawable/background_text"
+        android:textSize="30sp" />
 
     <Button
+        android:id="@+id/get_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_margin="20dp"
-        android:text="파일 찾기"
-        android:id="@+id/get_list"/>
+        android:layout_marginTop="100dp"
+        android:background="@drawable/button_fileopen"
+        android:scaleX="0.7"
+        android:scaleY="0.7"
+        android:text="get_list" />
+
     <Button
         android:id="@+id/create_file"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:background="@drawable/button_fileopen"
+        android:scaleX="0.7"
+        android:scaleY="0.7"
         android:text="파일 생성" />
+
     <Button
+        android:id="@+id/start_reg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_margin="20dp"
-        android:text="테스트 시작"
-        android:id="@+id/start_reg"/>
+        android:background="@drawable/button_recstart"
+        android:scaleX="0.7"
+        android:scaleY="0.7"
+        android:text="테스트 시작" />
 
     <TextView
+        android:id="@+id/select_File"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:layout_margin="20dp"
-        android:id="@+id/select_File" />
-
+        android:layout_margin="20dp" />
 
 
 </LinearLayout>

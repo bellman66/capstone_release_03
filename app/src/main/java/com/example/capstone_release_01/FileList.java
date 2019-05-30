@@ -35,7 +35,6 @@ public class FileList extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         // 객체 구현.
         mylist = new ArrayList<String>();
 
@@ -77,6 +76,7 @@ public class FileList extends ListActivity {
             Intent resultintent = new Intent();
             Bundle bundle = new Bundle();
             bundle.putString("File_str", File_str );
+            bundle.putString("title",selected_file.getName());
 
             // some value 안에 원하는 평서문을 넣어줌. 그럼보내게됨.
             resultintent.putExtras(bundle);
