@@ -5,8 +5,10 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -19,10 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 
 // 파일 리스트 관리 - 리스트 엑티비티.
-public class FileList extends ListActivity {
+public class FileList extends AppCompatActivity {
 
     private ArrayList<String> mylist;   // file 내 list.
     private ArrayList<String> list2;
@@ -31,12 +34,16 @@ public class FileList extends ListActivity {
 
     private File dir;
     private File file;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_file_list);
 
         // 객체 구현.
         mylist = new ArrayList<String>();
+        list1 = (ListView)findViewById(R.id.list) ;
+        //####################### 이부분을 지정하자.
 
         // 파일내 list 를 가져옴.
         setlistfiles();
@@ -48,19 +55,50 @@ public class FileList extends ListActivity {
             mylist.add(list[i].getName());
         }
 
-        list1 = this.getListView();
+        // list1 = this.getListView();
 
         // Adapter 생성 , list view 로 매칭.
-        ArrayAdapter<String> Adapter = new ArrayAdapter<String>(this,
-                R.layout.activity_file_list , R.id.listview , mylist);
-        setListAdapter(Adapter);
-        getListView().setTextFilterEnabled(true);
+        final ArrayAdapter<String> Adapter = new ArrayAdapter<String> (this,
+                android.R.layout.simple_list_item_1 , mylist);
+
+        //setListAdapter(Adapter);
+       // getListView().setTextFilterEnabled(true);
+
+        list1.setAdapter(Adapter);
+
+        list1.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                selected_file = new File(dir , mylist.get(position));
+                Toast.makeText(getApplicationContext(),selected_file.getPath(),Toast.LENGTH_LONG).show();
+                // 파일 내용 저장 - 파일 내용 변수 str
+                String File_str = File_READ2();
+
+                // Toast.makeText(getApplicationContext(), "txt 내용 : " + File_str, Toast.LENGTH_SHORT).show();
+
+
+                Intent resultintent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putString("File_str", File_str );
+                bundle.putString("title",selected_file.getName());
+
+                // some value 안에 원하는 평서문을 넣어줌. 그럼보내게됨.
+                resultintent.putExtras(bundle);
+                setResult(RESULT_OK , resultintent);
+                finish();
+
+            }
+        });
+
 
     }
 
     //===============================================================================================
     //===============================================================================================
 
+
+    /*
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
@@ -86,6 +124,7 @@ public class FileList extends ListActivity {
         // }
 
     }
+    */
 
 
     //===============================================================================================

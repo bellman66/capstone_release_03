@@ -1,169 +1,132 @@
 package com.example.capstone_release_01;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
 import android.speech.RecognizerIntent;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.os.Message;
+import android.speech.RecognitionListener;
+import android.speech.SpeechRecognizer;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 
-import java.util.ArrayList;
 
 
 public class Operator_API_FILE_MODE1 extends AppCompatActivity {
+    private ProgressBar mProgress;								//프로그레스바
+    private ImageView mLeftVolume[], mRightVolume[];		//볼륨 이미지
+    private SpeechRecognizer mRecognizer;					//음성인식 객체
 
-    private static final int REQUEST_CODE = 1234;
+    private final int READY = 0, END=1, FINISH=2;			//핸들러 메시지. 음성인식 준비, 끝, 앱 종료
 
-    TextView FILE_Text;
-    TextView API_Text;
-    ArrayList<String> Intent_text;
-    ArrayList<String> matches_text;
-    ArrayList<String> entityList;
-    ArrayList<Integer> result;
-    Intent google_intent;
-    Intent intent;
+    private Handler mHandler = new Handler(){
+        public void handleMessage(Message msg){
+            switch (msg.what) {
+                case READY:
+                    mProgress.setVisibility(View.INVISIBLE);				//준비되었으면 프로그레스바 감춤
+                    findViewById(R.id.stt_ui).setVisibility(View.VISIBLE);	//마이크 이미지 보임.
+                    break;
+                case END:
+                    mProgress.setVisibility(View.VISIBLE);						//말이 끝났으면 프로그레스바 출력(음성인식 중)
+                    findViewById(R.id.stt_ui).setVisibility(View.INVISIBLE);	//마이크 이미지 감춤
+                    sendEmptyMessageDelayed(FINISH, 5000);				//인식 시간 5초로 설정. 5초 지나면 신경안씀.
+                    break;
+                case FINISH:
+                    finish();														//앱 종료
+                    break;
+            }
+        }
+    };
 
-    int clickcount;
-    int mode;
-
+    /** Called when the activity is first created. */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_operator__api__file__mode1);
 
-        FILE_Text = (TextView) findViewById(R.id.File_Text);
-        API_Text = (TextView) findViewById(R.id.API_Text);
+        mProgress = (ProgressBar)findViewById(R.id.progress);						//프로그레스바
 
-        result = new ArrayList<>();
-        Intent_text = new ArrayList<>();
-        entityList = new ArrayList<>();
-
-        // Main 에서 주는 intent 를 받음.
-        intent = getIntent();
-        google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
-        clickcount = -1;
-
-        Handler handler = new Handler();
-
-        //==========================================================================================
-
-        FILE_Text.setText(Intent_text.get(clickcount));
-
-
-        for (int i = 0 ; i < Intent_text.size() ; i++) {
-            clickcount++;
-
-            if(!google_intent.getExtras().isEmpty()){
-                google_intent.getExtras().clear();
-            }
-
-            // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
-            google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
-            startActivityForResult(google_intent, REQUEST_CODE);
-
+        mLeftVolume = new ImageView[3];				//왼쪽 볼륨
+        mRightVolume = new ImageView[3];				//오른쪽 볼륨
+        for(int i=0; i<3; i++){
+            mLeftVolume[i] = (ImageView)findViewById(R.id.volume_left_1+i);
+            mRightVolume[i] = (ImageView)findViewById(R.id.volume_right_1+i);
         }
 
-        showmessage();
+
+        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);			//음성인식 intent생성
+        i.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());	//데이터 설정
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");							//음성인식 언어 설정
+
+        mRecognizer = SpeechRecognizer.createSpeechRecognizer(this);				//음성인식 객체
+        mRecognizer.setRecognitionListener(listener);										//음성인식 리스너 등록
+        mRecognizer.startListening(i);															//음성인식 시작
     }
+
+    //사용자의 입력 소리 크기에 따라 볼륨 이미지 설정. 3단계
+    private void setVolumeImg(int step){
+        for(int i=0; i<3; i++){
+            if(i<step)
+            {
+                mLeftVolume[0].setVisibility(View.VISIBLE);
+                mRightVolume[0].setVisibility(View.VISIBLE);
+            }
+            else{
+                mLeftVolume[0].setVisibility(View.INVISIBLE);
+                mRightVolume[0].setVisibility(View.INVISIBLE);
+            }
+        }
+    }
+
+    //음성인식 리스너
+    private RecognitionListener listener = new RecognitionListener() {
+        //입력 소리 변경 시
+        @Override public void onRmsChanged(float rmsdB) {
+            int step = (int)(rmsdB/7);		//소리 크기에 따라 step을 구함.
+            setVolumeImg(step);			//총 4단계 이미지 설정. 없음. 1단계, 2단계, 3단계
+        }
+
+        //음성 인식 결과 받음
+        @Override public void onResults(Bundle results) {
+            mHandler.removeMessages(END);			//핸들러에 종료 메시지 삭제
+
+            Intent i = new Intent();			//결과 반환할 intent
+            i.putExtras(results);				//결과 등록
+            setResult(RESULT_OK, i);		//결과 설정
+
+            finish();							//앱 종료
+        }
+
+        //음성 인식 준비가 되었으면
+        @Override public void onReadyForSpeech(Bundle params) {
+            mHandler.sendEmptyMessage(READY);		//핸들러에 메시지 보냄
+        }
+
+        //음성 입력이 끝났으면
+        @Override public void onEndOfSpeech() {
+            mHandler.sendEmptyMessage(END);		//핸들러에 메시지 보냄
+        }
+
+        //에러가 발생하면
+        @Override public void onError(int error) {
+            setResult(error);		//전 activity로 에러코드 전송
+        }
+
+        @Override public void onBeginningOfSpeech() {}							//입력이 시작되면
+        @Override public void onPartialResults(Bundle partialResults) {}		//인식 결과의 일부가 유효할 때
+        @Override public void onEvent(int eventType, Bundle params) {}		//미래의 이벤트를 추가하기 위해 미리 예약되어진 함수
+        @Override public void onBufferReceived(byte[] buffer) {}				//더 많은 소리를 받을 때
+    };
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // 요청코드(REQUEST_CODE)를 통해서 구분.
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
-
-            matches_text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            API_Text.setText(matches_text.get(0));
-
-            int shame = getDistance(matches_text.get(0),Intent_text.get(clickcount));
-            int result_int = ((matches_text.get(0).length()-shame) * 100) / matches_text.get(0).length() ;
-            if(result_int  < 0){
-                result_int = 0;
-            }
-            else if(result_int  > 100){
-                result_int = 100;
-            }
-            result.add(result_int);
-            Toast.makeText(getApplicationContext(),"발음 정확도 : " + result_int , Toast.LENGTH_LONG).show();
-
-            // 연속 읽기 경우
-            if(mode == 1)     {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
+    public void finish(){
+        if(mRecognizer!= null) mRecognizer.stopListening();						//음성인식 중지
+        mHandler.removeMessages(READY);			//메시지 삭제
+        mHandler.removeMessages(END);			//메시지 삭제
+        mHandler.removeMessages(FINISH);			//메시지 삭제
+        super.finish();
     }
 
-    public void showmessage() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle("안내");
-        builder.setMessage("발표가 완료되었습니다 \n결과를 확인하시겠습니까?");
-        builder.setIcon(android.R.drawable.ic_dialog_alert);
-
-        builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-                Intent intent_result = new Intent(getApplicationContext(),result.class);
-                intent_result.putIntegerArrayListExtra("result" , result);
-                intent_result.putStringArrayListExtra("entityList" , entityList);
-                // INTENT 실행.
-                startActivity(intent_result);
-
-            }
-        });
-
-        builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(getApplicationContext(),"발표 마무리",Toast.LENGTH_LONG).show();
-                finish();
-            }
-        });
-
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-
-    public static int getDistance(String s1, String s2) {
-        int longStrLen = s1.length() + 1;
-        int shortStrLen = s2.length() + 1; // 긴 단어 만큼 크기가 나올 것이므로, 가장 긴단어 에 맞춰 Cost를 계산
-        int[] cost = new int[longStrLen];
-        int[] newcost = new int[longStrLen]; // 초기 비용을 가장 긴 배열에 맞춰서 초기화 시킨다.
-        for (int i = 0; i < longStrLen; i++) { cost[i] = i; } // 짧은 배열을 한바퀴 돈다.
-        for (int j = 1; j < shortStrLen; j++) {
-            // 초기 Cost는 1, 2, 3, 4...
-            newcost[0] = j; // 긴 배열을 한바퀴 돈다.
-            for (int i = 1; i < longStrLen; i++) {
-                // 원소가 같으면 0, 아니면 1
-                int match = 0;
-                if (s1.charAt(i - 1) != s2.charAt(j - 1)) { match = 1; }
-                // 대체, 삽입, 삭제의 비용을 계산한다.
-                int replace = cost[i - 1] + match;
-                int insert = cost[i] + 1;
-                int delete = newcost[i - 1] + 1;
-                // 가장 작은 값을 비용에 넣는다.
-                newcost[i] = Math.min(Math.min(insert, delete), replace);
-            }
-            // 기존 코스트 & 새 코스트 스위칭
-            int[] temp = cost;
-            cost = newcost;
-            newcost = temp;
-        }
-        // 가장 마지막값 리턴
-        return cost[longStrLen - 1];
-    }
 }

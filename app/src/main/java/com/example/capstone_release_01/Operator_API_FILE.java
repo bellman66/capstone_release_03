@@ -16,9 +16,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.SyncStateContract;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,14 +34,18 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.logging.Logger;
 
 public class  Operator_API_FILE extends AppCompatActivity {
 
     private static final int REQUEST_CODE = 1234;
+    private final int GOOGLE_STT = 1000, MY_UI=1001;
 
     // 다음으로 넘기는 Button
     Button next_button;
     Button end_button;
+    Button cycle_button;
     // 보여지는 text
     TextView FILE_Text;
     TextView API_Text;
@@ -60,8 +68,10 @@ public class  Operator_API_FILE extends AppCompatActivity {
     ArrayList<String> entityList;
     private int mode;
     private int check;
-    BackThread thread;
     Handler handler;
+
+    Context mCtxContext;
+    String[] words;
 
     // 초기 지정 - oncreate
     @Override
@@ -72,6 +82,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
         // 버튼 , 텍스트 매핑.
         next_button = (Button) findViewById(R.id.next_button);
         end_button = (Button) findViewById(R.id.end_button);
+        cycle_button = (Button) findViewById(R.id.cycle_button);
         FILE_Text = (TextView) findViewById(R.id.File_Text);
         API_Text = (TextView) findViewById(R.id.API_Text);
 
@@ -97,7 +108,6 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
         Set_FILE_Text();
 
-
     }
 
     // Intent 로 부터 받은 텍스트 설정.
@@ -105,6 +115,8 @@ public class  Operator_API_FILE extends AppCompatActivity {
         File_str = intent.getStringExtra("File_str");
         title = intent.getStringExtra("title");
         mode = intent.getIntExtra("mode",0);
+        mCtxContext = Operator_API_FILE.this;
+        check = 0;
 
         if(!Intent_text.isEmpty()) {
             Intent_text.clear();
@@ -112,7 +124,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
         }
 
         // . 단위로 스플릿해서 words 에 넣음
-        String[] words = File_str.split("[.]");
+        words = File_str.split("[.]");
 
         // Intent_text 변수에 . 단위로 잘린 word를 넣음.
         Intent_text.addAll(Arrays.asList(words));
@@ -145,7 +157,35 @@ public class  Operator_API_FILE extends AppCompatActivity {
                     clickcount++;
 
                     if (mode == 0) {
-                        startmode3();
+                        startmode1();
+                    }
+                    else if (mode == 1) {
+                        startmode2();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "잘못된 모드 선택", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+
+                // 인터넷 연결 X 경우
+                else {
+                    // 연결 요망 토스트 메세지.
+                    Toast.makeText(getApplicationContext(), "인터넷 연결 요망", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        cycle_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 인터넷 연결시.
+                if (Connect()) {
+                    // 요청을 확인하는 카운팅.
+
+                    check = 1;
+
+                    if (mode == 0) {
+                        startmode1();
                     }
                     else if (mode == 1) {
                         startmode2();
@@ -202,24 +242,63 @@ public class  Operator_API_FILE extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         // 요청코드(REQUEST_CODE)를 통해서 구분.
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK){
+        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
 
             matches_text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            API_Text.setText(matches_text.get(0));
-
-            int shame = getDistance(matches_text.get(0),Intent_text.get(clickcount));
-            int result_int = ((matches_text.get(0).length()-shame) * 100) / matches_text.get(0).length() ;
-            if(result_int  < 0){
-                result_int = 0;
+            if (mode == 0) {
+                API_Text.setText("연속 말하기 모드");
             }
-            else if(result_int  > 100){
+            else {
+                API_Text.setText(matches_text.get(0));
+            }
+            int shame = getDistance(matches_text.get(0), Intent_text.get(clickcount));
+            int result_int = ((matches_text.get(0).length() - shame) * 100) / matches_text.get(0).length();
+            if (result_int < 0) {
+                result_int = 0;
+            } else if (result_int > 100) {
                 result_int = 100;
             }
-            result.add(result_int);
-            result_TEXT.add(matches_text.get(0));
 
-            Toast.makeText(getApplicationContext(),"발음 정확도 : " + result_int , Toast.LENGTH_LONG).show();
-            check = 2;
+            if(check == 0 ) {
+                result.add(result_int);
+                result_TEXT.add(matches_text.get(0));
+            }
+            else if (check == 1){
+                Toast.makeText(getApplicationContext(),"연습 정확도 : " + String.valueOf(result_int),Toast.LENGTH_LONG).show();
+
+                check = 0;
+            }
+
+            if (mode == 0) {
+                clickcount++;
+                if ( (clickcount) < (Intent_text.size()-1) || (Intent_text.size()-1) == 1 ) {
+                    if(clickcount < 0 || clickcount > Intent_text.size()){
+                        Toast.makeText(getApplicationContext(),"검사 종료가 되었습니다",Toast.LENGTH_LONG).show();
+                        return ;
+                    }
+                    // 한줄식 세팅되는 텍스트
+                    FILE_Text.setText(Intent_text.get(clickcount));
+
+                    // INTENT - 구글 API 서버로 요청하는 INTENT
+                    // 있을 경우 초기화.
+
+
+                    google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+                    // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+                    google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount+1) + "번");
+                    // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+                    startActivityForResult(google_intent , REQUEST_CODE);
+                }
+                else if( (clickcount) >= (Intent_text.size()-1))
+                {
+                    showmessage();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(),"잘못된 카운트" ,Toast.LENGTH_LONG).show();
+                }
+            }
         }
     }
 
@@ -329,40 +408,21 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
     private void startmode1(){
 
-        //#####################이 부분 수정하면됨.
+        FILE_Text.setText(words[0]);
 
-        if(clickcount != -1){
-            clickcount = -1;
-        }
-        for (int i = 0 ; i < Intent_text.size() ; i++) {
-            clickcount++;
+        google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-            handler.sendEmptyMessage(0);
-
-            google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
-            google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount) + "번");
-            // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
-            startActivityForResult(google_intent, REQUEST_CODE);
-
-            //########### 문제점 발견
-            //########### 순식간에 for문을 다돌아서 모든 메소드가 다실행되고 나서 입력받는 창이 나옴.
-
-        }
-
-        showmessage();
-
+        // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+        google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount+1) + "번");
+        // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+        startActivityForResult(google_intent , REQUEST_CODE);
 
     }
 
     private void startmode2() {
-        if( (clickcount) >= (Intent_text.size()))
-        {
-            // 안내 메세지 뜸.
-            showmessage();
-        }
-        else {
+
+        if ( (clickcount) < (Intent_text.size()-1) || (Intent_text.size()-1) == 1 ) {
             if(clickcount < 0 || clickcount > Intent_text.size()){
                 Toast.makeText(getApplicationContext(),"검사 종료가 되었습니다",Toast.LENGTH_LONG).show();
                 return ;
@@ -378,50 +438,20 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
             // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
             google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount) + "번");
+            google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount+1) + "번");
             // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
             startActivityForResult(google_intent , REQUEST_CODE);
         }
-    }
-
-    private void startmode3() {
-        while(true){
-            if( (clickcount) >= (Intent_text.size()-1))
-            {
-                // 안내 메세지 뜸.
-                check = 2;
-                showmessage();
-            }
-            else if(check == 1) {
-                BackThread thread = new BackThread();
-                thread.run();
-                check = 2;
-            }
+        else if( (clickcount) >= (Intent_text.size()-1))
+        {
+            showmessage();
+        }
+        else {
+            Toast.makeText(getApplicationContext(),"잘못된 카운트" ,Toast.LENGTH_LONG).show();
         }
     }
 
+};
 
-    class BackThread extends Thread{
-        @Override
-        public void run() {
-            //******************** 밑에 메소드 수정 요망
-
-                clickcount++;
-
-                handler.sendEmptyMessage(0);
-
-                google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
-                google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
-                startActivityForResult(google_intent, REQUEST_CODE);
-
-
-        } // end run()
-    } // end class BackThread
-
-
-
-}
 
 

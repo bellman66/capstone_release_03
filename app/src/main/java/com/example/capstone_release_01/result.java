@@ -7,8 +7,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +43,7 @@ public class result extends AppCompatActivity {
 
     TextView set_result;
     TextView set_entityList;
+    Spinner spinner;
 
     ArrayList<Integer> result_int;
     ArrayList<String> entityList;
@@ -49,10 +55,10 @@ public class result extends AppCompatActivity {
 
     LineChart lineChart;
     Intent intent;
+    Intent intent2;
     ListView listView;
 
     String title;
-    String input_data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,15 +73,55 @@ public class result extends AppCompatActivity {
         // Startkeyword();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                if (position == 0){
+                    Toast.makeText(getApplicationContext(),String.valueOf(position),Toast.LENGTH_LONG).show();
+                }
+                else if (position == 1){
+
+                    intent2 = new Intent(result.this,result2.class);
+                    intent2.putExtra("title", title );
+                    intent2.putStringArrayListExtra("Intent_text",Intent_text);
+                    intent2.putIntegerArrayListExtra("result_int",result_int);
+                    startActivity(intent2);
+                }
+                else {
+                    intent2 = new Intent(result.this,MainActivity.class);
+                    startActivity(intent2);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
+
     private void Set_FILE_Text() {
         set_result = (TextView) findViewById(R.id.set_result);
         set_entityList = (TextView) findViewById(R.id.set_entityList);
         listView = (ListView) findViewById(R.id.list_view);
-        input_data = null;
+        spinner = (Spinner) findViewById(R.id.spinner1);
+
+        ArrayAdapter adapter = ArrayAdapter.createFromResource(this,R.array.page,android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
 
         inputdata = new HashMap<>();
         data = new ArrayList<HashMap<String, String>>();
 
+        intent2 = new Intent();
         intent = getIntent();
         result_int = intent.getIntegerArrayListExtra("result");
         entityList = intent.getStringArrayListExtra("entityList");
@@ -172,15 +218,6 @@ public class result extends AppCompatActivity {
         String filename = title + ".txt";
         String path = foldername2 +"/"+filename;
 
-        if(!TextUtils.isEmpty(input_data)){
-            input_data = null;
-        }
-
-        for(int i = 0 ; i < result_int.size() ; i ++ ){
-            input_data += ( String.valueOf(result_int.get(i)) + " "  );
-        }
-        input_data += " . \n";
-
         try{
             File dir = new File(foldername2);
             //디렉토리 폴더가 없으면 생성함
@@ -195,13 +232,11 @@ public class result extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(path, true);
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos,"MS949");
                 BufferedWriter writer = new BufferedWriter(outputStreamWriter);
-                writer.write(input_data);
+                writer.write(String.valueOf(result_int) + "\n");
                 writer.flush();
 
                 writer.close();
                 fos.close();
-
-                Toast.makeText(getApplicationContext(),input_data,Toast.LENGTH_LONG).show();
 
         }catch (IOException e){
             e.printStackTrace();

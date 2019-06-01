@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="page">
+        <item >발표 결과</item>
+        <item >회차별 결과</item>
+        <item> 종료 </item>
+    </string-array>
+
+</resources>
