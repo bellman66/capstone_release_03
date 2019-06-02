@@ -83,7 +83,7 @@ public class result extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
                 if (position == 0){
-                    Toast.makeText(getApplicationContext(),String.valueOf(position),Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"현재 페이지 입니다.",Toast.LENGTH_LONG).show();
                 }
                 else if (position == 1){
 
