@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,7 @@ public class FileList extends AppCompatActivity {
 
     private File dir;
     private File file;
+    private File file2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,14 +158,34 @@ public class FileList extends AppCompatActivity {
             }
         }
 
-        file = new File(dir , "file.txt");
+        file = new File(dir , "발음 연습 예제.txt");
+        file2 = new File(dir , "영어 연습 예제.txt");
 
         try {
 
             FileOutputStream fos= new FileOutputStream(file);
-            String str = " 최초 생성 텍스트 ";
-            fos.write(str.getBytes());
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fos,"MS949");
+            BufferedWriter writer = new BufferedWriter(outputStreamWriter);
+            String str = "간장 공장 공장장은 강 공장장이고 된장 공장 공장장은 공 공장장이다. \n" +
+                    "내가 그린 기린 그림은 긴 기린 그림이냐, 그냥 그린 기린 그림이냐. \n" +
+                    "저기 계신 저 분이 박 법학박사이시고 여기 계신 이 분이 백 법학박사이시다.";
+            writer.write(str);
+            writer.flush();
+
+            writer.close();
             fos.close();
+
+            FileOutputStream fos2 = new FileOutputStream(file2);
+            OutputStreamWriter outputStreamWriter2 = new OutputStreamWriter(fos2,"MS949");
+            BufferedWriter writer2 = new BufferedWriter(outputStreamWriter2);
+            str = "What time is it now.  \n" +
+                    "She said God bless my child. \n" +
+                    "He said to me May you live to be a hundred.";
+            writer2.write(str);
+            writer2.flush();
+
+            writer2.close();
+            fos2.close();
 
         } catch (FileNotFoundException e) {
             showMsg("지정된 파일을 생성할 수 없습니다.");
