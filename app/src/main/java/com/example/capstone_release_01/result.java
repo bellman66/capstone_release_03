@@ -59,6 +59,7 @@ public class result extends AppCompatActivity {
     ListView listView;
 
     String title;
+    int count;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,12 +87,16 @@ public class result extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),"현재 페이지 입니다.",Toast.LENGTH_LONG).show();
                 }
                 else if (position == 1){
-
-                    intent2 = new Intent(result.this,result2.class);
-                    intent2.putExtra("title", title );
-                    intent2.putStringArrayListExtra("Intent_text",Intent_text);
-                    intent2.putIntegerArrayListExtra("result_int",result_int);
-                    startActivity(intent2);
+                    if(count == result_int.size()) {
+                        intent2 = new Intent(result.this, result2.class);
+                        intent2.putExtra("title", title);
+                        intent2.putStringArrayListExtra("Intent_text", Intent_text);
+                        intent2.putIntegerArrayListExtra("result_int", result_int);
+                        startActivity(intent2);
+                    }
+                    else {
+                        Toast.makeText(getApplicationContext(),"중간 종료로 인해 지원되지 않는 창",Toast.LENGTH_LONG).show();
+                    }
                 }
                 else {
                     intent2 = new Intent(result.this,MainActivity.class);
@@ -128,6 +133,7 @@ public class result extends AppCompatActivity {
         result_TEXT = intent.getStringArrayListExtra("result_TEXT");
         Intent_text = intent.getStringArrayListExtra("Intent_text");
         title = intent.getStringExtra("title");
+        count = (int) intent.getExtras().getInt("count");
 
         for(int i = 0 ; i < result_TEXT.size() ; i++){
             inputdata = new HashMap<>();

@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
 
                 // INTENT - FILELIST 객체로 보내는 MESSAGE 제작.
                 Intent intent = new Intent(getApplicationContext(),FileList.class);
-
                 // 결과값 요청.
                 startActivityForResult(intent,FILE_REQUEST_CODE);
 
@@ -85,7 +84,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(),FileCreate.class);
+
                 startActivity(intent);
+
             }
         });
 

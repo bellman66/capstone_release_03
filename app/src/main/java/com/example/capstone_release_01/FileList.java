@@ -71,12 +71,9 @@ public class FileList extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 selected_file = new File(dir , mylist.get(position));
-                Toast.makeText(getApplicationContext(),selected_file.getPath(),Toast.LENGTH_LONG).show();
+
                 // 파일 내용 저장 - 파일 내용 변수 str
                 String File_str = File_READ2();
-
-                // Toast.makeText(getApplicationContext(), "txt 내용 : " + File_str, Toast.LENGTH_SHORT).show();
-
 
                 Intent resultintent = new Intent();
                 Bundle bundle = new Bundle();
