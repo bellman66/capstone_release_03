@@ -178,7 +178,11 @@ public class  Operator_API_FILE extends AppCompatActivity {
                     }
                     else if (mode == 1) {
                         startmode2();
-                    } else {
+                    }
+                    else if (mode == 2) {
+                        startmode3();
+                    }
+                    else {
                         Toast.makeText(getApplicationContext(), "잘못된 모드 선택", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -206,7 +210,8 @@ public class  Operator_API_FILE extends AppCompatActivity {
                     }
                     else if (mode == 1) {
                         startmode2();
-                    } else {
+                    }
+                    else {
                         Toast.makeText(getApplicationContext(), "잘못된 모드 선택", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -262,12 +267,17 @@ public class  Operator_API_FILE extends AppCompatActivity {
         if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
 
             matches_text = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
             if (mode == 0) {
                 API_Text.setText("연속 말하기 모드");
+            }
+            else if (mode == 2) {
+                API_Text.setText("실전 말하기 모드");
             }
             else {
                 API_Text.setText(matches_text.get(0));
             }
+
             int shame = getDistance(matches_text.get(0), Intent_text.get(clickcount));
             int result_int = ((matches_text.get(0).length() - shame) * 100) / matches_text.get(0).length();
             if (result_int < 0) {
@@ -284,9 +294,10 @@ public class  Operator_API_FILE extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"연습 정확도 : " + String.valueOf(result_int),Toast.LENGTH_LONG).show();
 
                 check = 0;
-            }
+            };
 
-            if (mode == 0) {
+            if (mode == 0 || mode ==2) {
+
                 clickcount++;
                 if ( (clickcount) < (Intent_text.size()-1) || (Intent_text.size()-1) == 1 ) {
                     if(clickcount < 0 || clickcount > Intent_text.size()){
@@ -294,7 +305,15 @@ public class  Operator_API_FILE extends AppCompatActivity {
                         return ;
                     }
                     // 한줄식 세팅되는 텍스트
-                    FILE_Text.setText(Intent_text.get(clickcount));
+                    if(mode == 0) {
+                        FILE_Text.setText(Intent_text.get(clickcount));
+                    }
+                    // 변경 구문 -
+                    else if(mode == 2) {
+                        String[] word_first_end = Intent_text.get(clickcount).trim().split("\\s+");
+
+                        FILE_Text.setText(word_first_end[0] + " ~ " + word_first_end[word_first_end.length - 1]);
+                    }
 
                     // INTENT - 구글 API 서버로 요청하는 INTENT
                     // 있을 경우 초기화.
@@ -433,7 +452,7 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
     private void startmode1(){
 
-        FILE_Text.setText(words[0]);
+        FILE_Text.setText(Intent_text.get(clickcount));
 
         google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
@@ -476,6 +495,20 @@ public class  Operator_API_FILE extends AppCompatActivity {
         }
     }
 
+    private void startmode3(){
+        String[] word_first_end = Intent_text.get(clickcount).trim().split("\\s+");
+
+        FILE_Text.setText(word_first_end[0] + " ~ " + word_first_end[word_first_end.length - 1]);
+
+        google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+
+        // INTENT에 넣음 - 언어 모델 선택 ( 현재 - FREE )
+        google_intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL , RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        google_intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"예제 " + String.valueOf(clickcount+1) + "번");
+        // 인텐트 + RESQUEST_CODE 와 함께 실행 및 결과 받음.
+        startActivityForResult(google_intent , REQUEST_CODE);
+
+    }
 
     // 실험 중 ...
     public void analyzeEntitiesFile() throws Exception { // 키워드 추출 (추가)

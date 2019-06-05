@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         final ArrayList<String> matches_text = new ArrayList<String>();
         matches_text.add("연속 말하기 모드");
         matches_text.add("반복 말하기 모드");
+        matches_text.add("실전 말하기 모드");
 
         //###########################################################################
         // Apapter 에 매칭.
