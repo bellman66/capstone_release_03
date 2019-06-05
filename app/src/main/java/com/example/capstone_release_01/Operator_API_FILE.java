@@ -311,8 +311,25 @@ public class  Operator_API_FILE extends AppCompatActivity {
                     // 변경 구문 -
                     else if(mode == 2) {
                         String[] word_first_end = Intent_text.get(clickcount).trim().split("\\s+");
-
-                        FILE_Text.setText(word_first_end[0] + " ~ " + word_first_end[word_first_end.length - 1]);
+                        // __ 으로 빈칸 처리
+                        String str = new String();
+                        for (int i = 0 ; i < word_first_end.length ; i++){
+                            if( i == 0){
+                                str = word_first_end[i] ;
+                            }
+                            else if ( i == word_first_end.length -1){
+                                str += "  ";
+                                str += word_first_end[i];
+                            }
+                            else {
+                                str += "  ";
+                                for(int j = 0 ; j < word_first_end[i].length() ; j++){
+                                    str += "_";
+                                }
+                            }
+                        }
+                        // FILE_Text.setText(word_first_end[0] + " ~ " + word_first_end[word_first_end.length - 1]);
+                        FILE_Text.setText(str);
                     }
 
                     // INTENT - 구글 API 서버로 요청하는 INTENT
@@ -497,8 +514,24 @@ public class  Operator_API_FILE extends AppCompatActivity {
 
     private void startmode3(){
         String[] word_first_end = Intent_text.get(clickcount).trim().split("\\s+");
-
-        FILE_Text.setText(word_first_end[0] + " ~ " + word_first_end[word_first_end.length - 1]);
+        String str = new String();
+        for (int i = 0 ; i < word_first_end.length ; i++){
+            if( i == 0){
+                str = word_first_end[i] ;
+            }
+            else if ( i == word_first_end.length -1){
+                str += "  ";
+                str += word_first_end[i];
+            }
+            else {
+                str += "  ";
+                for(int j = 0 ; j < word_first_end[i].length() ; j++){
+                    str += "_";
+                }
+            }
+        }
+        // FILE_Text.setText(word_first_end[0] + " ~ " + word_first_end[word_first_end.length - 1]);
+        FILE_Text.setText(str);
 
         google_intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
